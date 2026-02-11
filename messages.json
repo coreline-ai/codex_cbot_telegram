@@ -1,0 +1,13 @@
+{
+    "messages": [
+        {
+            "message_id": 1001,
+            "chat_id": 123456,
+            "user": "Tester",
+            "text": "Hello, please list the current files in this directory for verification.",
+            "timestamp": "2026-02-11 15:25:00",
+            "processed": false
+        }
+    ],
+    "last_update_id": 1001
+}
