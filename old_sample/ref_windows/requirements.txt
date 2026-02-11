@@ -1,0 +1,10 @@
+# 소놀봇 (mybot_ver2) Python 의존성 패키지
+
+# 텔레그램 봇 API
+python-telegram-bot==22.6
+
+# 환경 변수 관리 (.env 파일)
+python-dotenv==1.1.1
+
+# HTTP 요청 (선택적 - 웹 검색 등에 사용)
+requests==2.32.3

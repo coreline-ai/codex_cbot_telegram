@@ -1,0 +1,49 @@
+# macOS Porting and High-Speed Response Improvement Plan
+
+현재 윈도우 기반의 '주기적 폴링' 방식을 개선하여, 맥 OS에서 작동하면서 **실시간 응답(Long Polling)**이 가능한 시스템으로 이식하는 개발 계획입니다.
+
+## 핵심 개선 전략
+
+1. **대기 시간 제로 (Long Polling)**: `getUpdates` API의 `timeout` 옵션을 활용하여 메시지 발생 즉시 캐치.
+2. **이벤트 기반 실행 (Reactive Trigger)**: 스케줄러를 기다리지 않고 리스너가 즉시 클로드 실행.
+3. **맥 최적화 (macOS Native)**: 배치 파일을 셸 스크립트로 전환하고 `launchd`를 통해 서비스 상주.
+
+---
+
+## Proposed Changes
+
+### [Component 1] 실시간 메시지 리스너 (Listener Upgrade)
+
+#### [MODIFY] [telegram_listener.py](file:///d:/project_new/cbot_desktop/cbot/telegram_listener.py)
+- **롱 폴링 적용**: `bot.get_updates(timeout=30)`를 적용하여 네트워크 부하를 줄이면서 실시간성 확보.
+- **즉시 트리거 로직**: 메시지 수신 즉시 `subprocess.Popen(["./mybot_autoexecutor.sh"])`를 호출하여 클로드 기동.
+- **이중 실행 방지**: 실행 중인 프로세스가 있는지 체크하는 로직을 Python 레벨에서 관리.
+
+### [Component 2] 맥 전용 실행기 (Shell Executor)
+
+#### [NEW] `mybot_autoexecutor.sh`
+- [mybot_autoexecutor.bat](file:///d:/project_new/cbot_desktop/cbot/mybot_autoexecutor.bat)의 모든 로직을 Bash 스크립트로 이식.
+- **프로세스 체크**: `tasklist` 대신 `ps aux | grep claude` 사용.
+- **환경 변수**: 맥의 셸 환경에 맞게 `export` 및 경로 설정.
+- **세션 유지**: `claude -p -c` 옵션을 유지하여 대화 맥락 보존.
+
+### [Component 3] 시스템 자동화 (Scheduler Replacement)
+
+#### [NEW] `com.mybot.autobot.plist`
+- 윈도우 작업 스케줄러 대신 맥의 `launchd` 서비스 등록용 설정 파일.
+- 맥 부팅 시 리스너 자동 실행 및 비정상 종료 시 자동 재시작(KeepAlive) 설정.
+
+#### [NEW] `setup_macos.sh`
+- 의존성 설치 (`pip install`), `.env` 설정, `launchd` 등록을 한 번에 수행하는 통합 설치 스크립트.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+1. **응답 속도 테스트**: 텔레그램 메시지 발송 후 클로드 기동까지의 시간 측정 (목표 3초 이내).
+2. **이동성 테스트**: 맥 터미널에서 `sh mybot_autoexecutor.sh` 단독 실행 시 환경 변수 및 경로 정상 작동 확인.
+
+### Manual Verification
+- 맥의 '활성 상태 보기'에서 리스너가 배경 서비스로 상주하는지 확인.
+- 텔레그램 전송 후 맥 알림 또는 로그를 통해 클로드가 즉각 반응하는지 확인.
