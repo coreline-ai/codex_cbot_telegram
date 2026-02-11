@@ -13,9 +13,15 @@
 - `core.get_recent_history(limit)`: 최근 수행한 N개의 작업 요약을 가져옵니다.
 - `core.mark_as_done(message_id, instruction, summary)`: 작업 완료 후 인덱스 업데이트와 함께 처리 완료 마킹을 합니다.
 
-## 🎨 이미지 생성 지침
-- 만약 이미지 생성이 필요하다면, **당신(Codex)의 내장된 이미지 생성 도구**가 있는지 먼저 확인하고 사용하세요.
-- 만장이 내장 도구가 없다면, `skills/image_gen/image_gen.py`에 정의된 외부 API 호출 방식을 사용할 수 있으나, 이는 추가 과금이 발생할 수 있음을 인지하고 사용자에게 알린 후 신중히 사용하세요.
+## 🎨 이미지 생성 지침 (Canvas Rendering 방식)
+- **원칙**: 외부 DALL-E API 대신, **HTML5 Canvas와 JavaScript**를 사용하여 이미지를 코딩으로 직접 생성하세요.
+- **도구**: `skills/image_gen/canvas_render.py` 스크립트를 사용하여 작성한 HTML을 이미지(.png)로 변환하세요.
+- **절차**:
+    1. 요청받은 이미지에 부합하는 `Canvas API` 기반의 HTML/JS 코드를 작성하여 임시 파일(예: `temp_art.html`)로 저장합니다.
+    2. 생성할 이미지 영역을 반드시 `<div id="canvas-container">`로 감싸야 합니다.
+    3. `python skills/image_gen/canvas_render.py temp_art.html result.png` 명령을 실행하여 이미지를 획득합니다.
+    4. 생성된 이미지를 `core.send_photo`로 전송합니다.
+- **이점**: 사용자님의 구독 권한 내에서 API 과금 없이 무한정 고품질 이미지를 생성할 수 있습니다.
 
 ## 📝 작업 프로토콜
 1. 스크립트 실행 시 `core.check_messages()`를 가장 먼저 확인합니다.
