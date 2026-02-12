@@ -1,5 +1,5 @@
 """
-all_new_cbot - Core Engine (macOS/Codex Only)
+all_new_cbot - Core Engine (macOS/Cross-Platform)
 
 integrated core.py:
 - Telegram API Integration (based on python-telegram-bot)
@@ -10,11 +10,11 @@ integrated core.py:
 import os
 import json
 import asyncio
-import httpx
 from datetime import datetime
 from dotenv import load_dotenv
 from telegram import Bot
-import memory  # 신규 메모리 모듈 임포트
+
+import memory  # 메모리 모듈 임포트
 
 # Load Environment
 load_dotenv()
@@ -38,29 +38,93 @@ def save_json(path, data):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-# --- TELEGRAM BOT ACTIONS ---
+# --- TELEGRAM BOT ACTIONS (REAL API) ---
 async def send_message(chat_id, text, parse_mode="Markdown"):
-    """통합 메시지 전송 함수"""
-    if not BOT_TOKEN: return False
-    async with Bot(token=BOT_TOKEN) as bot:
-        try:
+    """통합 메시지 전송 함수 (Real Telegram API)"""
+    if not BOT_TOKEN or BOT_TOKEN in ("your_bot_token_here", "YOUR_BOT_TOKEN"):
+        print(f"⚠️ [CORE] BOT_TOKEN 미설정 — MOCK 모드: {text[:100]}...")
+        return False
+
+    try:
+        bot = Bot(token=BOT_TOKEN)
+
+        # 텔레그램 메시지 길이 제한 (4096자)
+        if len(text) > 4000:
+            chunks = [text[i:i+4000] for i in range(0, len(text), 4000)]
+            for i, chunk in enumerate(chunks):
+                if i > 0:
+                    await asyncio.sleep(0.5)
+                await bot.send_message(chat_id=chat_id, text=chunk, parse_mode=parse_mode)
+        else:
             await bot.send_message(chat_id=chat_id, text=text, parse_mode=parse_mode)
-            return True
-        except Exception as e:
-            print(f"❌ 전송 오류: {e}")
-            return False
+
+        print(f"📧 [TELEGRAM] Sent to {chat_id}: {text[:80]}...")
+        return True
+
+    except Exception as e:
+        print(f"❌ [TELEGRAM] Send failed: {e}")
+        # Markdown 파싱 실패 시 plain text로 재시도
+        if parse_mode == "Markdown":
+            try:
+                bot = Bot(token=BOT_TOKEN)
+                await bot.send_message(chat_id=chat_id, text=text, parse_mode=None)
+                return True
+            except:
+                pass
+        return False
 
 async def send_photo(chat_id, photo_path, caption=None):
-    """이미지 전송 함수 (신규 스킬용)"""
-    if not BOT_TOKEN or not os.path.exists(photo_path): return False
-    async with Bot(token=BOT_TOKEN) as bot:
-        try:
-            with open(photo_path, 'rb') as f:
-                await bot.send_photo(chat_id=chat_id, photo=f, caption=caption)
-            return True
-        except Exception as e:
-            print(f"❌ 사진 전송 오류: {e}")
-            return False
+    """이미지 전송 함수 (Real Telegram API)"""
+    if not BOT_TOKEN or BOT_TOKEN in ("your_bot_token_here", "YOUR_BOT_TOKEN"):
+        print(f"⚠️ [CORE] BOT_TOKEN 미설정 — MOCK 모드: Photo {photo_path}")
+        return False
+
+    if not os.path.exists(photo_path):
+        print(f"❌ [TELEGRAM] 파일 없음: {photo_path}")
+        return False
+
+    try:
+        bot = Bot(token=BOT_TOKEN)
+        with open(photo_path, "rb") as photo_file:
+            await bot.send_photo(chat_id=chat_id, photo=photo_file, caption=caption)
+        print(f"📸 [TELEGRAM] Photo sent to {chat_id}: {photo_path}")
+        return True
+
+    except Exception as e:
+        print(f"❌ [TELEGRAM] Photo send failed: {e}")
+        return False
+
+async def send_document(chat_id, file_path, caption=None):
+    """파일(문서) 전송 함수"""
+    if not BOT_TOKEN or BOT_TOKEN in ("your_bot_token_here", "YOUR_BOT_TOKEN"):
+        print(f"⚠️ [CORE] BOT_TOKEN 미설정 — MOCK 모드: Doc {file_path}")
+        return False
+
+    if not os.path.exists(file_path):
+        print(f"❌ [TELEGRAM] 파일 없음: {file_path}")
+        return False
+
+    # 텔레그램 파일 크기 제한 (50MB)
+    file_size = os.path.getsize(file_path)
+    if file_size > 50 * 1024 * 1024:
+        print(f"⚠️ [TELEGRAM] 파일 50MB 초과: {file_size / 1024 / 1024:.1f}MB")
+        return False
+
+    try:
+        bot = Bot(token=BOT_TOKEN)
+        with open(file_path, "rb") as doc_file:
+            await bot.send_document(
+                chat_id=chat_id,
+                document=doc_file,
+                caption=caption,
+                filename=os.path.basename(file_path)
+            )
+        print(f"📎 [TELEGRAM] Document sent to {chat_id}: {file_path}")
+        return True
+
+    except Exception as e:
+        print(f"❌ [TELEGRAM] Document send failed: {e}")
+        return False
 
 def check_messages():
     """읽지 않은 새 메시지 목록 반환 (Codex 호출용)"""
@@ -78,7 +142,7 @@ def mark_as_done(message_id, instruction=None, result_summary=""):
             target_msg = m
             break
     save_json(MESSAGES_FILE, data)
-    
+
     # 메모리 인덱스 업데이트
     if target_msg:
         memory.update_index(
@@ -106,4 +170,4 @@ def is_working():
 
 if __name__ == "__main__":
     # Test
-    print("Core module loaded.")
+    print("Core module loaded. BOT_TOKEN:", "SET" if BOT_TOKEN else "NOT SET")

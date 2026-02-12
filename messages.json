@@ -1,13 +1,4 @@
 {
-    "messages": [
-        {
-            "message_id": 2002,
-            "chat_id": 123456,
-            "user": "Tester",
-            "text": "오늘날씨는?",
-            "timestamp": "2026-02-11 15:47:00",
-            "processed": false
-        }
-    ],
-    "last_update_id": 2002
+  "messages": [],
+  "last_update_id": 0
 }
