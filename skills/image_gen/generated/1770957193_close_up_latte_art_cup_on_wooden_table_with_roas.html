@@ -1,0 +1,299 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Generated Image</title>
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: #0b1020;
+      overflow: hidden;
+    }
+    #canvas-container {
+      width: 1200px;
+      height: 1200px;
+    }
+    #art {
+      width: 1200px;
+      height: 1200px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container">
+    <canvas id="art" width="1200" height="1200"></canvas>
+  </div>
+  <script>
+    const prompt = 'Close-up latte art cup on wooden table with roasted coffee beans, product shot composition, high detail';
+    const lowerPrompt = prompt.toLowerCase();
+    const canvas = document.getElementById('art');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    function hashText(text) {
+      let h = 2166136261;
+      for (let i = 0; i < text.length; i += 1) {
+        h ^= text.charCodeAt(i);
+        h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+      }
+      return h >>> 0;
+    }
+
+    function rng(seed) {
+      let x = seed || 1;
+      return () => {
+        x ^= x << 13;
+        x ^= x >>> 17;
+        x ^= x << 5;
+        return (x >>> 0) / 4294967296;
+      };
+    }
+
+    function hasAny(words) {
+      return words.some((w) => lowerPrompt.includes(w));
+    }
+
+    function detectTheme() {
+      if (hasAny(['cafe', 'coffee', 'latte', 'espresso', 'roastery', 'menu', '카페', '커피', '라떼'])) return 'cafe';
+      if (hasAny(['tech', 'saas', 'ai', 'startup', 'software', 'dashboard'])) return 'tech';
+      if (hasAny(['fashion', 'lookbook', 'apparel', 'style'])) return 'fashion';
+      if (hasAny(['travel', 'hotel', 'resort', 'beach', 'trip'])) return 'travel';
+      if (hasAny(['medical', 'clinic', 'hospital', 'health'])) return 'medical';
+      return 'default';
+    }
+
+    function roundedRect(context, x, y, w, h, r) {
+      const rr = Math.min(r, w / 2, h / 2);
+      context.beginPath();
+      context.moveTo(x + rr, y);
+      context.lineTo(x + w - rr, y);
+      context.quadraticCurveTo(x + w, y, x + w, y + rr);
+      context.lineTo(x + w, y + h - rr);
+      context.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+      context.lineTo(x + rr, y + h);
+      context.quadraticCurveTo(x, y + h, x, y + h - rr);
+      context.lineTo(x, y + rr);
+      context.quadraticCurveTo(x, y, x + rr, y);
+      context.closePath();
+    }
+
+    function drawAtmosphere(rand, palette) {
+      const grad = ctx.createLinearGradient(0, 0, width, height);
+      grad.addColorStop(0, palette[0]);
+      grad.addColorStop(0.55, palette[1]);
+      grad.addColorStop(1, palette[2]);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+
+      for (let i = 0; i < 40; i += 1) {
+        const x = rand() * width;
+        const y = rand() * height;
+        const radius = 45 + rand() * 220;
+        const alpha = 0.04 + rand() * 0.12;
+        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawCafeScene(rand, isProduct) {
+      // Soft window lights
+      for (let i = 0; i < 5; i += 1) {
+        const x = 90 + i * 220;
+        ctx.fillStyle = 'rgba(255, 215, 160, 0.14)';
+        roundedRect(ctx, x, 90, 160, 360, 18);
+        ctx.fill();
+      }
+
+      // Table
+      ctx.fillStyle = 'rgba(58, 38, 26, 0.92)';
+      roundedRect(ctx, 0, 760, width, 440, 0);
+      ctx.fill();
+
+      const cupX = isProduct ? 600 : 520;
+      const cupY = isProduct ? 520 : 560;
+      const cupW = isProduct ? 340 : 300;
+      const cupH = isProduct ? 260 : 220;
+
+      // Saucer
+      ctx.fillStyle = 'rgba(222, 214, 204, 0.95)';
+      ctx.beginPath();
+      ctx.ellipse(cupX, cupY + cupH * 0.85, cupW * 0.75, 56, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cup body
+      ctx.fillStyle = 'rgba(246, 243, 238, 0.98)';
+      roundedRect(ctx, cupX - cupW / 2, cupY - cupH / 2, cupW, cupH, 32);
+      ctx.fill();
+
+      // Handle
+      ctx.strokeStyle = 'rgba(246, 243, 238, 0.98)';
+      ctx.lineWidth = 26;
+      ctx.beginPath();
+      ctx.arc(cupX + cupW * 0.42, cupY - 6, 66, -1.2, 1.2);
+      ctx.stroke();
+
+      // Coffee crema
+      const crema = ctx.createRadialGradient(cupX - 28, cupY - cupH * 0.2, 14, cupX, cupY - cupH * 0.17, cupW * 0.48);
+      crema.addColorStop(0, 'rgba(204, 136, 82, 0.95)');
+      crema.addColorStop(1, 'rgba(92, 54, 31, 0.96)');
+      ctx.fillStyle = crema;
+      ctx.beginPath();
+      ctx.ellipse(cupX, cupY - cupH * 0.16, cupW * 0.44, 38, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Latte swirl
+      ctx.strokeStyle = 'rgba(247, 238, 223, 0.82)';
+      ctx.lineWidth = 4;
+      for (let i = 0; i < 4; i += 1) {
+        ctx.beginPath();
+        ctx.arc(cupX, cupY - cupH * 0.16, 12 + i * 8, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Steam
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+      ctx.lineWidth = 5;
+      for (let i = 0; i < 4; i += 1) {
+        const sx = cupX - 55 + i * 34;
+        ctx.beginPath();
+        ctx.moveTo(sx, cupY - cupH * 0.52);
+        ctx.bezierCurveTo(sx + 16, cupY - cupH * 0.78, sx - 18, cupY - cupH * 0.96, sx + 12, cupY - cupH * 1.2);
+        ctx.stroke();
+      }
+
+      // Coffee beans
+      const beanCount = isProduct ? 70 : 36;
+      for (let i = 0; i < beanCount; i += 1) {
+        const bx = rand() * width;
+        const by = 780 + rand() * 390;
+        const rx = 8 + rand() * 10;
+        const ry = 5 + rand() * 7;
+        const angle = rand() * Math.PI;
+
+        ctx.save();
+        ctx.translate(bx, by);
+        ctx.rotate(angle);
+        ctx.fillStyle = `rgba(52, 29, 17, ${0.68 + rand() * 0.28})`;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(92, 58, 42, 0.7)';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(-rx * 0.6, 0);
+        ctx.quadraticCurveTo(0, -2.2, rx * 0.6, 0);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function drawTechScene(rand) {
+      for (let y = 0; y < height; y += 48) {
+        ctx.strokeStyle = 'rgba(88, 120, 220, 0.15)';
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+      for (let x = 0; x < width; x += 48) {
+        ctx.strokeStyle = 'rgba(88, 120, 220, 0.12)';
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let i = 0; i < 44; i += 1) {
+        const x = 120 + rand() * (width - 240);
+        const y = 120 + rand() * (height - 240);
+        const r = 6 + rand() * 14;
+        ctx.fillStyle = 'rgba(122, 212, 255, 0.75)';
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawFashionScene(rand) {
+      for (let i = 0; i < 6; i += 1) {
+        const x = 90 + i * 170;
+        const h = 220 + rand() * 460;
+        ctx.fillStyle = `rgba(255,255,255,${0.05 + rand() * 0.07})`;
+        roundedRect(ctx, x, height - h - 80, 120, h, 26);
+        ctx.fill();
+      }
+    }
+
+    function drawTravelScene(rand) {
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      for (let i = 0; i < 8; i += 1) {
+        ctx.beginPath();
+        ctx.arc(120 + i * 150, 220 + rand() * 120, 70 + rand() * 100, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = 'rgba(17, 52, 85, 0.55)';
+      roundedRect(ctx, 0, 730, width, 470, 0);
+      ctx.fill();
+    }
+
+    function drawMedicalScene(rand) {
+      for (let i = 0; i < 20; i += 1) {
+        const x = 80 + rand() * (width - 160);
+        const y = 80 + rand() * (height - 220);
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x - 10, y);
+        ctx.lineTo(x + 10, y);
+        ctx.moveTo(x, y - 10);
+        ctx.lineTo(x, y + 10);
+        ctx.stroke();
+      }
+    }
+
+    function drawFooter(theme) {
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      roundedRect(ctx, 38, 1030, 1124, 126, 20);
+      ctx.fill();
+
+      const clean = prompt.length > 82 ? prompt.slice(0, 82) + '...' : prompt;
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.font = 'bold 30px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Theme: ${theme.toUpperCase()}`, 72, 1084);
+
+      ctx.font = '24px Arial';
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.fillText(clean, 72, 1134);
+    }
+
+    const palettes = {
+      cafe: ['#22150f', '#3c281d', '#6b4632'],
+      tech: ['#0c1325', '#13284d', '#1a3e70'],
+      fashion: ['#23141b', '#4d2d3a', '#845465'],
+      travel: ['#1a3a54', '#245f7c', '#52a2b5'],
+      medical: ['#12354a', '#1c4e66', '#3a87a6'],
+      default: ['#111827', '#1f2937', '#334155']
+    };
+
+    const theme = detectTheme();
+    const isProduct = hasAny(['product', 'detail', 'close-up', 'closeup', 'shot', 'feature', 'thumbnail']);
+    const rand = rng(hashText(prompt));
+
+    drawAtmosphere(rand, palettes[theme] || palettes.default);
+
+    if (theme === 'cafe') drawCafeScene(rand, isProduct);
+    else if (theme === 'tech') drawTechScene(rand);
+    else if (theme === 'fashion') drawFashionScene(rand);
+    else if (theme === 'travel') drawTravelScene(rand);
+    else if (theme === 'medical') drawMedicalScene(rand);
+
+    drawFooter(theme);
+  </script>
+</body>
+</html>

@@ -1,92 +1,100 @@
+﻿import os
 import sys
-import os
 import json
 import argparse
 import time
 from playwright.sync_api import sync_playwright
 
+
 class ReconEngine:
     def __init__(self):
-        pass
+        self.niche_keywords = {
+            "Luxury": ["watch", "jewelry", "luxury", "premium", "\uc8fc\uc5bc\ub9ac", "\uc2dc\uacc4", "\uace0\uae09"],
+            "Cafe": ["cafe", "coffee", "latte", "espresso", "roastery", "\uce74\ud398", "\ucee4\ud53c", "\ub77c\ub5bc"],
+            "Tech": ["tech", "startup", "saas", "software", "ai", "dashboard", "\ud14c\ud06c", "\uae30\uc220"],
+            "Fashion": ["fashion", "style", "lookbook", "apparel", "\ud328\uc158", "\uc758\ub958"],
+            "Travel": ["travel", "hotel", "resort", "trip", "tour", "\uc5ec\ud589", "\ud638\ud154"],
+            "Medical": ["medical", "clinic", "hospital", "health", "\ubcd1\uc6d0", "\ud074\ub9ac\ub2c9"],
+        }
 
     def analyze(self, input_data):
         """
-        Analyzes input search query or URL.
-        If input is a URL, performs partial crawling (simulated for now if no full recon needed).
-        If input is a brief (text), performs 'Trend Simulation'.
+        Analyze input URL or free-form brief.
+        - URL: browser-based structure/screenshot analysis.
+        - Brief: niche classification and design guidance.
         """
-        # Simple heuristic: is it a URL?
-        if input_data.startswith("http"):
+        if (input_data or "").startswith("http"):
             return self._analyze_site(input_data, "recon_output")
-        else:
-            return self._simulate_market_research(input_data)
+        return self._simulate_market_research(input_data or "")
 
     def _simulate_market_research(self, topic):
-        """
-        Simulates gathering intelligence on a niche.
-        """
-        print(f"[RECON] 🕵️‍♂️ Simulating Market Research for: '{topic}'")
-        
-        # Deduce niche
+        print(f"[RECON] Simulating market research for: '{topic}'")
+
+        lower = topic.lower()
         niche = "General"
-        if "watch" in topic.lower() or "jewelry" in topic.lower():
-            niche = "Luxury"
-        elif "cafe" in topic.lower() or "coffee" in topic.lower():
-            niche = "Cafe"
-        elif "tech" in topic.lower() or "startup" in topic.lower():
-            niche = "Tech"
-        
-        print(f"[RECON] Identified Market Niche: {niche}")
-        
+        best_score = 0
+        for candidate, words in self.niche_keywords.items():
+            score = sum(1 for w in words if w.lower() in lower)
+            if score > best_score:
+                best_score = score
+                niche = candidate
+
+        palette_map = {
+            "Luxury": ["#101010", "#f5f3eb", "#b79b53"],
+            "Cafe": ["#2f1d15", "#f0e2cc", "#a36a43"],
+            "Tech": ["#0b1020", "#d6e7ff", "#3f7ef7"],
+            "Fashion": ["#261b23", "#f8e9f2", "#d35f8d"],
+            "Travel": ["#133a53", "#e7f6ff", "#2fa5c6"],
+            "Medical": ["#143546", "#eaf8ff", "#31a2c9"],
+            "General": ["#1a1a1a", "#f2f2f2", "#666666"],
+        }
+
+        typography = "Playfair Display" if niche in ("Luxury", "Cafe", "Fashion") else "Inter"
+        layout = "Hero-Centric"
+
+        print(f"[RECON] Identified market niche: {niche}")
+
         return {
             "niche": niche,
-            "palette": ["#000000", "#FFFFFF", "#D4AF37"] if niche == "Luxury" else ["#333", "#F4F4F4"],
-            "typography": "Serif" if niche == "Luxury" else "Sans-Serif",
-            "layout": "Hero-Centric"
+            "palette": palette_map.get(niche, palette_map["General"]),
+            "typography": typography,
+            "layout": layout,
         }
 
     def _analyze_site(self, url, output_dir):
-        """
-        Analyzes a website structure and saves metadata + screenshot.
-        """
+        """Analyze a website structure and save metadata + screenshot."""
         os.makedirs(output_dir, exist_ok=True)
-        
+
         with sync_playwright() as p:
             try:
                 print(f"[RECON] Launching browser for: {url}")
                 browser = p.chromium.launch(headless=True)
-                page = browser.new_page(viewport={'width': 1280, 'height': 800})
-                
-                # Navigate and wait
+                page = browser.new_page(viewport={"width": 1280, "height": 800})
+
                 page.goto(url)
-                page.wait_for_load_state('networkidle')
-                time.sleep(2) # Extra buffer for dynamic content
-                
-                # 1. Capture Screenshot
+                page.wait_for_load_state("networkidle")
+                time.sleep(2)
+
                 screenshot_path = os.path.join(output_dir, "screenshot.png")
                 page.screenshot(path=screenshot_path, full_page=True)
                 print(f"[RECON] Screenshot saved: {screenshot_path}")
-                
-                # 2. Extract Structural Metadata
-                structure = page.evaluate("""() => {
-                    const getBestText = (el) => (el.innerText || "").split('\\n')[0].trim().substring(0, 50);
-                    
+
+                structure = page.evaluate(
+                    """() => {
+                    const getBestText = (el) => (el.innerText || "").split('\n')[0].trim().substring(0, 50);
+
                     const sections = [];
-                    // Find Header
                     const header = document.querySelector('header, #header, .header');
                     if (header) sections.push({ type: 'header', text: getBestText(header), tag: header.tagName });
-                    
-                    // Find Main Sections
+
                     const mainSections = document.querySelectorAll('section, [role="main"] > div, .section');
                     mainSections.forEach(s => {
                         sections.push({ type: 'section', text: getBestText(s), tag: s.tagName, id: s.id, classes: s.className });
                     });
-                    
-                    // Find Footer
+
                     const footer = document.querySelector('footer, #footer, .footer');
                     if (footer) sections.push({ type: 'footer', text: getBestText(footer), tag: footer.tagName });
-                    
-                    // Extract unique colors (sample)
+
                     const colors = Array.from(new Set(
                         Array.from(document.querySelectorAll('*'))
                         .slice(0, 100)
@@ -100,29 +108,31 @@ class ReconEngine:
                         sections: sections,
                         colors: colors
                     };
-                }""")
-                
+                }"""
+                )
+
                 meta_path = os.path.join(output_dir, "structure.json")
                 with open(meta_path, "w", encoding="utf-8") as f:
-                    json.dump(structure, f, indent=4)
-                
+                    json.dump(structure, f, indent=2, ensure_ascii=False)
+
                 print(f"[RECON] Metadata saved: {meta_path}")
                 print(f"[RECON] Found {len(structure['sections'])} major sections.")
-                
+
                 browser.close()
                 return structure
             except Exception as e:
                 print(f"[ERROR] Recon failed: {e}")
                 return {"error": str(e)}
 
+
 def main():
     parser = argparse.ArgumentParser(description="Web Reconnaissance Engine")
     parser.add_argument("--url", help="URL to analyze")
     parser.add_argument("--brief", help="Brief to analyze")
     parser.add_argument("--output_dir", default="recon_output", help="Directory to save results")
-    
+
     args = parser.parse_args()
-    
+
     engine = ReconEngine()
     if args.url:
         engine.analyze(args.url)
@@ -130,6 +140,7 @@ def main():
         engine.analyze(args.brief)
     else:
         print("Please provide --url or --brief")
+
 
 if __name__ == "__main__":
     main()

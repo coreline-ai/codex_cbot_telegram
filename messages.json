@@ -1,4 +1,21 @@
 {
-  "messages": [],
+  "messages": [
+    {
+      "message_id": 1,
+      "chat_id": 0,
+      "user": "local_simulator",
+      "text": "Create a modern cafe render landing page",
+      "timestamp": "2026-02-13 13:11:19.676925",
+      "processed": true
+    },
+    {
+      "message_id": 2,
+      "chat_id": 0,
+      "user": "local_simulator",
+      "text": "멋진 카페 렌더 페이지 만들어줘",
+      "timestamp": "2026-02-13 13:12:38.797669",
+      "processed": true
+    }
+  ],
   "last_update_id": 0
 }

@@ -5,6 +5,16 @@ import argparse
 import base64
 import re
 import shutil
+import ast
+
+
+def _strict_realistic_enabled():
+    """
+    If enabled, *_realistic assets must come from an actual photoreal provider
+    (currently sd_webui). Canvas fallback is treated as failure.
+    """
+    raw = os.getenv("STRICT_REALISTIC_ASSETS", "1").strip().lower()
+    return raw not in ("0", "false", "no", "off")
 
 # Premium Base CSS with Glassmorphism and modern typography
 PREMIUM_BASE_CSS = """
@@ -134,37 +144,179 @@ CANVAS_TEMPLATES = {
             <p class="text-xl tracking-widest border-t border-b border-white/20 py-4 inline-block">{subtitle}</p>
         </div>
     </div>
+    """,
+    "product_realistic": """
+    <div class="flex items-center justify-center h-screen bg-gradient-to-br from-amber-100 via-orange-100 to-stone-200">
+        <div class="text-center p-10 rounded-xl bg-white/80 shadow-2xl max-w-lg">
+            <p class="text-sm tracking-[0.25em] uppercase text-amber-800 mb-4">Product Visual</p>
+            <h2 class="text-5xl font-serif font-bold text-stone-800 mb-3">{title}</h2>
+            <p class="text-lg text-stone-600">{subtitle}</p>
+        </div>
+    </div>
+    """,
+    "roastery_realistic": """
+    <div class="flex items-center justify-center h-screen bg-gradient-to-br from-zinc-900 via-stone-800 to-amber-900 text-white">
+        <div class="text-center max-w-xl px-8">
+            <p class="text-xs uppercase tracking-[0.35em] text-amber-200 mb-4">Roastery</p>
+            <h2 class="text-5xl font-serif font-bold mb-4">{title}</h2>
+            <p class="text-lg text-amber-100/90">{subtitle}</p>
+        </div>
+    </div>
     """
 }
+
+def _resolve_canvas_type(asset_type):
+    """Maps any requested asset type to an available canvas template key."""
+    if asset_type in CANVAS_TEMPLATES:
+        return asset_type
+    if "hero" in asset_type:
+        return "hero_realistic"
+    if "roastery" in asset_type:
+        return "roastery_realistic"
+    if "product" in asset_type:
+        return "product_realistic"
+    return "product_detail"
+
+def run_image_gen_subprocess(prompt, output_path, image_gen_script, timeout_sec=180, expected_provider=None):
+    """
+    Calls image_gen.py as a subprocess and copies the generated PNG to output_path.
+    Returns True on success, False otherwise.
+    """
+    import subprocess
+
+    if not os.path.exists(image_gen_script):
+        print(f"[WARN] image_gen script not found: {image_gen_script}")
+        return False
+
+    cmd = [sys.executable, image_gen_script, prompt]
+    print(f"[EXEC] {' '.join(cmd)}")
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_sec)
+    except Exception as e:
+        print(f"[ERROR] image_gen subprocess execution failed: {e}")
+        return False
+
+    stdout = (result.stdout or "").strip()
+    stderr = (result.stderr or "").strip()
+
+    if result.returncode != 0:
+        print(f"[ERROR] image_gen subprocess failed (exit={result.returncode}).")
+        if stderr:
+            print(f"[STDERR] {stderr}")
+        if stdout:
+            print(f"[STDOUT] {stdout}")
+        return False
+
+    payload = None
+    for line in reversed(stdout.splitlines()):
+        line = line.strip()
+        if line.startswith("{") and line.endswith("}"):
+            try:
+                payload = json.loads(line)
+                break
+            except Exception:
+                pass
+            try:
+                payload = ast.literal_eval(line)
+                break
+            except Exception:
+                continue
+
+    if not isinstance(payload, dict) or not payload.get("ok"):
+        print("[ERROR] image_gen subprocess returned invalid payload.")
+        if stdout:
+            print(f"[STDOUT] {stdout}")
+        return False
+
+    provider = (payload.get("provider") or "").strip()
+    if expected_provider:
+        expected_set = {
+            p.strip() for p in str(expected_provider).replace(",", "|").split("|") if p.strip()
+        }
+        if expected_set and provider not in expected_set:
+            print(
+                f"[ERROR] image_gen provider mismatch. expected one of {sorted(expected_set)} got='{provider or 'unknown'}'."
+            )
+            if stdout:
+                print(f"[STDOUT] {stdout}")
+            return False
+
+    generated_path = payload.get("image_path")
+    if not generated_path or not os.path.exists(generated_path):
+        print(f"[ERROR] image_gen output missing: {generated_path}")
+        return False
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    if os.path.abspath(generated_path) != os.path.abspath(output_path):
+        shutil.copy2(generated_path, output_path)
+    return True
 
 def generate_photorealistic_assets(assets, project_dir):
     """
     Attempts to generate photorealistic assets using sophisticated prompts.
-    Note: Requires generate_image capability or a fallback to high-quality placeholders.
+    If direct photorealistic generation is unavailable, this falls back to canvas
+    placeholders so downstream packaging does not silently miss required files.
     """
+    print("\n[VIRTUAL_AGENCY] Initiating High-Fidelity Photorealistic Asset Production...")
+
     assets_dir = os.path.join(project_dir, "assets")
     os.makedirs(assets_dir, exist_ok=True)
-    
-    print("\n[VIRTUAL_AGENCY] Initiating High-Fidelity Photorealistic Asset Production...")
-    
+
+    skills_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    image_gen_script = os.path.join(skills_dir, "image_gen", "image_gen.py")
+
+    all_ok = True
+    fallback_assets = []
+    strict_realistic = _strict_realistic_enabled()
     for asset in assets:
         name = asset.get("name")
+        if not name:
+            print("[WARN] Skipping asset with missing 'name'.")
+            all_ok = False
+            continue
+
         a_type = asset.get("type", "product_realistic")
         custom_prompt = asset.get("prompt")
-        
+
         output_file = f"{name}.png"
         full_output_path = os.path.join(assets_dir, output_file)
-        
-        # Determine the best prompt
         template = ASSET_TEMPLATES.get(a_type, ASSET_TEMPLATES["product_realistic"])
         final_prompt = custom_prompt if custom_prompt else template["prompt"]
-        
+
         print(f"  - [PROCESS] Generating: {output_file}...")
         print(f"    [PROMPT] \"{final_prompt}\"")
-        
-        # This function serves as a protocol. The actual generation is handled by the agent's tools.
-        # We mark it as pending so the agent knows to call generate_image for each of these.
-        print(f"  - [PENDING] Agent verification required for '{output_file}'")
+        if os.path.exists(full_output_path) and not strict_realistic:
+            print(f"  - [SKIP] Existing asset found: {output_file}")
+            continue
+
+        # Explicit subprocess path: use image_gen first when photorealistic assets are requested.
+        generated = run_image_gen_subprocess(
+            final_prompt,
+            full_output_path,
+            image_gen_script,
+            expected_provider="sd_webui|codex_cli" if strict_realistic else None,
+        )
+        if generated:
+            print(f"  - [OK] Generated via image_gen subprocess: {output_file}")
+            continue
+
+        if strict_realistic:
+            all_ok = False
+            print("  - [ERROR] Strict realistic mode is ON. Canvas fallback is disabled.")
+            continue
+
+        print("  - [INFO] image_gen subprocess unavailable/failed. Using canvas fallback.")
+        fallback_assets.append({
+            "name": name,
+            "type": _resolve_canvas_type(a_type),
+            "title": asset.get("title", "Premium Visual"),
+            "subtitle": asset.get("subtitle", "Auto-generated fallback asset")
+        })
+
+    if fallback_assets:
+        all_ok = all_ok and generate_missing_assets(fallback_assets, project_dir)
+
+    return all_ok
 
 def generate_missing_assets(assets, project_dir):
     """
@@ -178,8 +330,14 @@ def generate_missing_assets(assets, project_dir):
     skills_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     render_script = os.path.join(skills_dir, "image_gen", "canvas_render.py")
 
+    all_ok = True
     for asset in assets:
         name = asset.get("name")
+        if not name:
+            print("[WARN] Skipping asset with missing 'name'.")
+            all_ok = False
+            continue
+
         a_type = asset.get("type", "product_detail")
         title = asset.get("title", "Premium Quality")
         subtitle = asset.get("subtitle", "Elite Experience")
@@ -191,9 +349,7 @@ def generate_missing_assets(assets, project_dir):
             print(f"[GENERATE] Producing missing asset: {output_file} ({a_type})")
             
             # 1. Get Template
-            template = CANVAS_TEMPLATES.get(a_type, CANVAS_TEMPLATES.get("product_detail"))
-            if not template:
-                template = CANVAS_TEMPLATES["product_detail"] # Fallback
+            template = CANVAS_TEMPLATES.get(_resolve_canvas_type(a_type), CANVAS_TEMPLATES["product_detail"])
 
             html_content = f"""
 <!DOCTYPE html>
@@ -203,8 +359,10 @@ def generate_missing_assets(assets, project_dir):
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet">
     <style>body {{ font-family: 'Inter', sans-serif; }} .font-serif {{ font-family: 'Playfair Display', serif; }}</style>
 </head>
-<body>
+<body style="margin: 0;">
+    <div id="canvas-container" style="width: 1200px; height: 1200px; overflow: hidden;">
     {template.format(title=title, subtitle=subtitle)}
+    </div>
 </body>
 </html>"""
             
@@ -217,19 +375,28 @@ def generate_missing_assets(assets, project_dir):
             import subprocess
             try:
                 # Use sys.executable to ensure we use the same python environment
-                cmd = [sys.executable, render_script, temp_blueprint, full_output_path]
+                cmd = [sys.executable, render_script, temp_blueprint, full_output_path, "#canvas-container", "0.5"]
                 print(f"[EXEC] {' '.join(cmd)}")
                 result = subprocess.run(cmd, capture_output=True, text=True)
-                if result.returncode == 0:
-                    print(f"✅ [SUCCESS] Generated {output_file}")
+                if result.returncode == 0 and os.path.exists(full_output_path):
+                    print(f"[OK] Generated {output_file}")
                 else:
-                    print(f"❌ [ERROR] Failed to generate {output_file}: {result.stderr}")
+                    all_ok = False
+                    stderr = (result.stderr or "").strip()
+                    stdout = (result.stdout or "").strip()
+                    print(f"[ERROR] Failed to generate {output_file} (exit={result.returncode}).")
+                    if stderr:
+                        print(f"[STDERR] {stderr}")
+                    if stdout:
+                        print(f"[STDOUT] {stdout}")
             except Exception as e:
-                print(f"❌ [EXCEPTION] Error calling renderer: {e}")
+                all_ok = False
+                print(f"[ERROR] Exception while calling renderer: {e}")
             
             # 4. Cleanup temp blueprint
             if os.path.exists(temp_blueprint):
                 os.remove(temp_blueprint)
+    return all_ok
 
 def get_base64_image(image_path):
     """Converts an image to a Base64 data URI."""
@@ -319,17 +486,26 @@ def create_web_package(project_name, html_content, css_content, assets=None, mod
         smart_sync_assets(html_content, project_dir)
 
     # NEW: Automated Asset Generation (High-Fidelity Priority)
+    generation_ok = True
     if assets:
         print("\n[VIRTUAL_AGENCY] Analyzing asset requirements...")
         # Prioritize photorealistic generation for Elite/Premium context
-        if any(a.get("type", "").endswith("_realistic") for a in assets) or "--elite" in sys.argv:
-            generate_photorealistic_assets(assets, project_dir)
+        realistic_requested = any(a.get("type", "").endswith("_realistic") for a in assets) or "--elite" in sys.argv
+        if realistic_requested:
+            generation_ok = generate_photorealistic_assets(assets, project_dir)
         else:
-            generate_missing_assets(assets, project_dir)
+            generation_ok = generate_missing_assets(assets, project_dir)
         
         # Re-sync if in link mode
         if mode == "link":
             smart_sync_assets(html_content, project_dir)
+
+        # In strict mode, fail fast instead of silently shipping low-quality fallback output.
+        if realistic_requested and _strict_realistic_enabled() and not generation_ok:
+            raise RuntimeError(
+                "Photorealistic asset generation failed in strict mode. "
+                "Ensure image_gen provider is codex_cli or sd_webui and the backend is reachable."
+            )
 
     # Initial write of HTML
     with open(os.path.join(project_dir, "index.html"), "w", encoding="utf-8") as f:
@@ -342,12 +518,18 @@ def create_web_package(project_name, html_content, css_content, assets=None, mod
     print(f"[PATH] Location: {project_dir}")
     
     if assets:
-        print("\n[ASSETS] RECURSIVE ASSET GENERATION NEEDED:")
+        print("\n[ASSETS] Generation summary:")
         for asset in assets:
-            print(f"  - [ ] Generate: {asset['name']} (Type: {asset['type']}) -> saved to assets/{asset['name']}.png")
+            name = asset.get("name", "unnamed")
+            a_type = asset.get("type", "unknown")
+            out_file = os.path.join(assets_dir, f"{name}.png")
+            status = "[OK]" if os.path.exists(out_file) else "[MISSING]"
+            print(f"  - {status} {name} (Type: {a_type}) -> assets/{name}.png")
         
         if mode == "seal":
             print("\n[TIP] Run this script again with --seal AFTER generating assets to embed them.")
+        if not generation_ok:
+            print("[WARN] One or more assets failed to generate.")
 
     # Post-process for embedding if requested (Seal Mode)
     if mode == "seal":

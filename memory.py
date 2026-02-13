@@ -33,17 +33,18 @@ def save_index(data):
 
 def _clean_token(word):
     """구두점·따옴표 제거하여 깨끗한 토큰 반환"""
-    return re.sub(r"[^\w]", "", word)
+    # Keep Korean/English letters and digits only for stable multilingual tokenization.
+    return re.sub(r"[^0-9A-Za-z가-힣]", "", word)
 
 def _extract_keywords(text):
     """텍스트에서 유의미한 키워드를 추출합니다."""
-    # 구두점 제거 후 토큰화
-    tokens = [_clean_token(w) for w in text.split()]
+    # Multilingual keyword extraction: Korean/English words and numbers.
+    tokens = re.findall(r"[0-9A-Za-z가-힣]{2,}", text or "")
     # 2글자 이상, 중복 제거, 최대 15개
     seen = set()
     keywords = []
     for t in tokens:
-        if len(t) >= 2 and t not in seen:
+        if t not in seen:
             seen.add(t)
             keywords.append(t)
         if len(keywords) >= 15:
@@ -84,8 +85,11 @@ def update_index(message_id, instruction, result_summary="", files=None):
 def search_memory(query):
     """인덱스에서 쿼리와 매칭되는 과거 기록을 검색합니다."""
     index = load_index()
-    query_tokens = [_clean_token(w).lower() for w in query.split() if len(_clean_token(w)) >= 2]
+    query_tokens = [t.lower() for t in re.findall(r"[0-9A-Za-z가-힣]{2,}", query or "")]
     results = []
+
+    # Fallback for edge cases where tokenizer yields nothing (symbols-only input etc.).
+    query_fallback = (query or "").strip().lower()
 
     for task in index["tasks"]:
         score = 0
@@ -100,6 +104,9 @@ def search_memory(query):
         for qt in query_tokens:
             if qt in content:
                 score += 1
+
+        if score == 0 and query_fallback and query_fallback in content:
+            score += 1
 
         if score > 0:
             results.append((score, task))

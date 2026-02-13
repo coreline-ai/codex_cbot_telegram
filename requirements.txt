@@ -1,19 +1,9 @@
-# all_new_cbot Python 의존성 패키지
-
-# 텔레그램 봇 API
+﻿# all_new_cbot Python dependencies
 python-telegram-bot==22.6
-
-# 환경 변수 관리 (.env 파일)
 python-dotenv==1.1.1
-
-# HTML 파싱 (web_motion, web_auditor 스킬)
 beautifulsoup4>=4.12
-
-# 브라우저 자동화 (image_gen, web_recon 스킬)
+# Install browser once: python -m playwright install chromium
 playwright>=1.40
-
-# 이미지 처리 (web_gen 에셋 검증 - 선택)
 Pillow>=10.0
-
-# HTTP 요청 (웹 검색 등 - 선택)
 requests>=2.31
+pytest>=8.0

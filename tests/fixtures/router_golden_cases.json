@@ -1,0 +1,63 @@
+[
+  {
+    "name": "web-cafe-modern",
+    "message_id": "101",
+    "text": "Create a landing page for a modern cafe brand",
+    "expected": {
+      "HAS_TASK": "1",
+      "ROUTE": "web_master",
+      "ROUTE_REASON": "web_keywords_detected",
+      "MESSAGE_ID": "101",
+      "CHAT_ID": "",
+      "PROJECT_NAME": "msg-101-cafe-create-a-landing-page-for-a-modern-cafe-",
+      "INSTRUCTION": "Create a landing page for a modern cafe brand",
+      "TASK_TYPE": "web_page",
+      "TASK_CONFIDENCE": "0.70",
+      "DOMAIN_HINT": "cafe",
+      "DOMAIN_CONFIDENCE": "0.63",
+      "STYLE_HINT": "modern",
+      "DELIVERABLE_HINT": "web_page"
+    }
+  },
+  {
+    "name": "image-logo-startup",
+    "message_id": "102",
+    "text": "Generate a logo image for a startup",
+    "expected": {
+      "HAS_TASK": "1",
+      "ROUTE": "image_gen",
+      "ROUTE_REASON": "image_keywords_detected",
+      "MESSAGE_ID": "102",
+      "CHAT_ID": "",
+      "PROJECT_NAME": "msg-102-tech-generate-a-logo-image-for-a-startup",
+      "INSTRUCTION": "Generate a logo image for a startup",
+      "TASK_TYPE": "image_asset",
+      "TASK_CONFIDENCE": "0.70",
+      "DOMAIN_HINT": "tech",
+      "DOMAIN_CONFIDENCE": "0.63",
+      "STYLE_HINT": "auto",
+      "DELIVERABLE_HINT": "image_asset"
+    }
+  },
+  {
+    "name": "general-no-route",
+    "message_id": "103",
+    "text": "Need help planning Q2 team tasks",
+    "expected": {
+      "HAS_TASK": "1",
+      "ROUTE": "codex_general",
+      "ROUTE_REASON": "no_route_keyword",
+      "MESSAGE_ID": "103",
+      "CHAT_ID": "",
+      "PROJECT_NAME": "msg-103-project-need-help-planning-q2-team-tasks",
+      "INSTRUCTION": "Need help planning Q2 team tasks",
+      "TASK_TYPE": "general",
+      "TASK_CONFIDENCE": "0.35",
+      "DOMAIN_HINT": "general",
+      "DOMAIN_CONFIDENCE": "0.20",
+      "STYLE_HINT": "auto",
+      "DELIVERABLE_HINT": "general"
+    }
+  }
+]
+

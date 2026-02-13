@@ -1,0 +1,243 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>High Detail Mall Product Shot</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 20%, #1a1f2c, #05060d 75%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    #canvas-container {
+      width: 1200px;
+      height: 1200px;
+      background: #05060d;
+      box-shadow: 0 35px 120px rgba(4, 6, 11, 0.85);
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+  <div id="canvas-container">
+    <canvas id="art" width="1200" height="1200"></canvas>
+  </div>
+  <script>
+    const canvas = document.getElementById('art');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    function drawBackground() {
+      const gradient = ctx.createLinearGradient(0, 0, 0, height);
+      gradient.addColorStop(0, '#0b1221');
+      gradient.addColorStop(0.35, '#101832');
+      gradient.addColorStop(0.7, '#131b30');
+      gradient.addColorStop(1, '#080b15');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+
+      const radial = ctx.createRadialGradient(width/2, height*0.32, 120, width/2, height*0.35, 420);
+      radial.addColorStop(0, 'rgba(255, 240, 220, 0.35)');
+      radial.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = radial;
+      ctx.fillRect(0, 0, width, height);
+
+      for (let i = 0; i < 70; i++) {
+        const x = Math.random() * width;
+        const y = Math.random() * height * 0.65;
+        const r = 8 + Math.random() * 32;
+        ctx.fillStyle = `rgba(255,255,255,${0.02 + Math.random() * 0.08})`;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawFloor() {
+      const floorGrad = ctx.createLinearGradient(0, height*0.5, 0, height);
+      floorGrad.addColorStop(0, 'rgba(12,15,20,0.5)');
+      floorGrad.addColorStop(1, '#04060c');
+      ctx.fillStyle = floorGrad;
+      ctx.fillRect(0, height*0.5, width, height*0.5);
+
+      ctx.save();
+      ctx.translate(width/2, height*0.9);
+      ctx.scale(1, 0.35);
+      const glow = ctx.createRadialGradient(0, 0, 40, 0, 0, 400);
+      glow.addColorStop(0, 'rgba(255,255,255,0.65)');
+      glow.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(0, 0, 420, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = 1.5;
+      for (let i = -5; i <= 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(width/2 + i * 80, height * 0.6);
+        ctx.lineTo(width/2 + i * 250, height);
+        ctx.stroke();
+      }
+    }
+
+    function drawPedestal() {
+      const topY = height * 0.78;
+      const topRad = 320;
+      ctx.save();
+      ctx.translate(width/2, topY);
+      ctx.scale(1.3, 0.35);
+      const topGrad = ctx.createRadialGradient(0, 0, 40, 0, 0, topRad);
+      topGrad.addColorStop(0, 'rgba(255,255,255,0.9)');
+      topGrad.addColorStop(1, 'rgba(210,210,210,0.2)');
+      ctx.fillStyle = topGrad;
+      ctx.beginPath();
+      ctx.arc(0, 0, topRad, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      const bodyGrad = ctx.createLinearGradient(width/2 - 400, topY, width/2 + 400, height*0.96);
+      bodyGrad.addColorStop(0, '#faf7f4');
+      bodyGrad.addColorStop(0.4, '#dfe4ec');
+      bodyGrad.addColorStop(0.8, '#aeb4c4');
+      bodyGrad.addColorStop(1, '#9096a4');
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath();
+      ctx.moveTo(width/2 - 360, height*0.78);
+      ctx.lineTo(width/2 + 360, height*0.78);
+      ctx.quadraticCurveTo(width/2 + 380, height*0.92, width/2 + 280, height*0.98);
+      ctx.lineTo(width/2 - 280, height*0.98);
+      ctx.quadraticCurveTo(width/2 - 380, height*0.92, width/2 - 360, height*0.78);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.fillRect(width/2 - 380, height*0.78 - 16, 760, 8);
+    }
+
+    function drawMall() {
+      const baseY = height * 0.68;
+      ctx.save();
+      ctx.shadowBlur = 60;
+      ctx.shadowColor = 'rgba(255,255,255,0.35)';
+
+      const atriumGrad = ctx.createLinearGradient(width/2 - 180, height*0.35, width/2 + 180, baseY);
+      atriumGrad.addColorStop(0, '#dfe8ff');
+      atriumGrad.addColorStop(0.4, '#9fc0f8');
+      atriumGrad.addColorStop(0.7, '#6f9ed1');
+      atriumGrad.addColorStop(1, '#4a6a9c');
+      ctx.fillStyle = atriumGrad;
+      ctx.beginPath();
+      ctx.moveTo(width/2 - 190, height*0.32);
+      ctx.quadraticCurveTo(width/2, height*0.24, width/2 + 190, height*0.32);
+      ctx.lineTo(width/2 + 190, baseY);
+      ctx.lineTo(width/2 - 190, baseY);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.fillRect(width/2 - 220, baseY + 6, 440, 5);
+
+      const wingGrad = ctx.createLinearGradient(0, height*0.38, 0, baseY);
+      wingGrad.addColorStop(0, '#f3f3f8');
+      wingGrad.addColorStop(1, '#8e9db5');
+      ctx.fillStyle = wingGrad;
+      ctx.fillRect(width/2 - 420, height*0.4, 160, baseY - height*0.4);
+      ctx.fillRect(width/2 + 260, height*0.4, 160, baseY - height*0.4);
+
+      ctx.fillStyle = 'rgba(20,30,60,0.85)';
+      for (let i = 0; i < 4; i++) {
+        for (let j = 0; j < 5; j++) {
+          ctx.fillRect(width/2 - 410 + i * 38, height*0.42 + j * 46, 24, 28);
+          ctx.fillRect(width/2 + 270 + i * 38, height*0.42 + j * 46, 24, 28);
+        }
+      }
+
+      ctx.save();
+      ctx.shadowBlur = 45;
+      ctx.shadowColor = 'rgba(255,174,94,0.85)';
+      const portalGrad = ctx.createLinearGradient(width/2 - 230, baseY - 20, width/2 + 230, baseY + 60);
+      portalGrad.addColorStop(0, '#ffe0c0');
+      portalGrad.addColorStop(0.4, '#ffcf92');
+      portalGrad.addColorStop(0.8, '#ffb36c');
+      portalGrad.addColorStop(1, '#e06a3a');
+      ctx.fillStyle = portalGrad;
+      ctx.fillRect(width/2 - 230, baseY - 110, 460, 110);
+      ctx.restore();
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.font = '42px "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('AURORA SHOPPING MALL', width/2, baseY - 50);
+
+      ctx.fillStyle = 'rgba(18,26,50,0.7)';
+      ctx.fillRect(width/2 - 230, baseY - 210, 460, 90);
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.font = '28px "Segoe UI", sans-serif';
+      ctx.fillText('Flagship Lifestyle Experience', width/2, baseY - 158);
+
+      ctx.save();
+      const glassColumns = 9;
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = 2;
+      for (let i = 0; i <= glassColumns; i++) {
+        const x = width/2 - 180 + (360 / glassColumns) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, height*0.32 + 10);
+        ctx.lineTo(x, baseY);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      ctx.save();
+      ctx.globalAlpha = 0.28;
+      ctx.scale(1, -1);
+      ctx.translate(0, -2*baseY - 90);
+      ctx.drawImage(canvas, width/2 - 300, height*0.32, 600, baseY - height*0.32, width/2 - 300, height*0.32, 600, baseY - height*0.32);
+      ctx.restore();
+    }
+
+    function drawAccents() {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = 3;
+      for (let i = 0; i < 5; i++) {
+        const offset = (i - 2) * 90;
+        ctx.beginPath();
+        ctx.moveTo(width/2 + offset, height*0.25);
+        ctx.lineTo(width/2 + offset - 120, height * 0.02);
+        ctx.stroke();
+      }
+
+      ctx.shadowBlur = 80;
+      ctx.shadowColor = 'rgba(250,199,128,0.9)';
+      ctx.fillStyle = 'rgba(255,174,84,0.6)';
+      ctx.beginPath();
+      ctx.arc(width/2 - 320, height*0.24, 38, 0, Math.PI * 2);
+      ctx.arc(width/2 + 320, height*0.28, 24, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.font = '22px "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Studio-grade hero shot — premium retail architecture', width/2, height*0.97);
+    }
+
+    drawBackground();
+    drawFloor();
+    drawPedestal();
+    drawMall();
+    drawAccents();
+  </script>
+</body>
+</html>
