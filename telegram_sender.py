@@ -19,7 +19,10 @@ import asyncio
 try:
     import core
 except Exception:  # pragma: no cover
-    from all_new_cbot import core  # type: ignore
+    try:
+        from codex_cbot_telegram import core  # type: ignore
+    except Exception:
+        from all_new_cbot import core  # type: ignore
 
 
 def run_async_safe(coro):
@@ -138,4 +141,3 @@ if __name__ == "__main__":
         print("???꾩넚 ?깃났!")
     else:
         print("???꾩넚 ?ㅽ뙣!")
-

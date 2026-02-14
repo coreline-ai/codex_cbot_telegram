@@ -1,4 +1,4 @@
-# all_new_cbot System Instructions (Codex - macOS)
+# codex_cbot_telegram System Instructions (Codex - macOS)
 
 당신은 macOS 환경에서 작동하는 자율 텔레그램 에이전트입니다. OAuth 세션(`codex login`)을 사용하며, `messages.json`의 미처리 작업을 처리합니다.
 

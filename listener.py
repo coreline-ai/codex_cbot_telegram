@@ -1,5 +1,5 @@
 ﻿"""
-all_new_cbot - Real-time Listener (Cross-Platform)
+codex_cbot_telegram - Real-time Listener (Cross-Platform)
 
 - Poll Telegram updates
 - Append messages to messages.json
@@ -331,7 +331,7 @@ async def main():
         return
 
     print("=" * 50)
-    print("all_new_cbot Listener")
+    print("codex_cbot_telegram Listener")
     print("=" * 50)
 
     while True:

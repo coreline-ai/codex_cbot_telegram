@@ -6,12 +6,18 @@ from datetime import datetime
 try:
     import core
 except Exception:  # pragma: no cover
-    from all_new_cbot import core  # type: ignore
+    try:
+        from codex_cbot_telegram import core  # type: ignore
+    except Exception:
+        from all_new_cbot import core  # type: ignore
 
 try:
     import telegram_sender as sender
 except Exception:  # pragma: no cover
-    from all_new_cbot import telegram_sender as sender  # type: ignore
+    try:
+        from codex_cbot_telegram import telegram_sender as sender  # type: ignore
+    except Exception:
+        from all_new_cbot import telegram_sender as sender  # type: ignore
 
 # Configuration
 POLL_INTERVAL = int(os.getenv("TELEGRAM_POLLING_INTERVAL", "10"))

@@ -1,5 +1,5 @@
 """
-all_new_cbot - Memory Management (Indexed)
+codex_cbot_telegram - Memory Management (Indexed)
 
 memory.py:
 - Fast task indexing

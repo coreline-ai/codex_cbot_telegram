@@ -1,5 +1,5 @@
 ﻿"""
-all_new_cbot - Core Engine
+codex_cbot_telegram - Core Engine
 
 Provides stable APIs used by Codex tasks:
 - Telegram send helpers (async)
@@ -33,7 +33,10 @@ except Exception:  # pragma: no cover
 try:
     import memory
 except Exception:  # pragma: no cover
-    from all_new_cbot import memory  # type: ignore
+    try:
+        from codex_cbot_telegram import memory  # type: ignore
+    except Exception:
+        from all_new_cbot import memory  # type: ignore
 
 # Load environment
 load_dotenv()

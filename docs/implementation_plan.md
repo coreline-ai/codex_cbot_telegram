@@ -15,14 +15,14 @@
 
 ### [Component 1] 텔레그램 봇 리스너 (Bot Listener Refinement)
 
-#### [MODIFY] [telegram_bot.py](file:///d:/project_new/cbot_desktop/cbot/all_new_cbot/telegram_bot.py)
+#### [MODIFY] [telegram_bot.py](file:///d:/project_new/cbot_desktop/cbot/codex_cbot_telegram/telegram_bot.py)
 - **플랫폼 독립적 실행**: Windows 전용 `powershell` 명령어를 삭제하고 `codex exec`를 직접 호출하도록 수정.
 - **실시간성 강화**: 폴링 간격을 최적화하거나 `python-telegram-bot`의 `Updater` 패턴을 고려하여 즉시 응답 체계 구축.
 - **에러 핸들링**: macOS 환경에서의 권한 문제나 CLI 연결 실패 시 재시도 로직 강화.
 
 ### [Component 2] macOS 전용 실행기 (Shell Executor)
 
-#### [MODIFY] [executor.sh](file:///d:/project_new/cbot_desktop/cbot/all_new_cbot/executor.sh)
+#### [MODIFY] [executor.sh](file:///d:/project_new/cbot_desktop/cbot/codex_cbot_telegram/executor.sh)
 - **환경 변수 준수**: `APPDATA`, `USERPROFILE` 등 윈도우 전용 변수 배제 및 macOS 표준 경로 사용.
 - **프로세스 제어**: `pgrep`을 활용하여 중복 실행 방지 및 효율적인 상주 관리.
 - **Codex Mandate**: `codex.md`의 지침을 엄격히 준수하도록 실행 인자 최적화.

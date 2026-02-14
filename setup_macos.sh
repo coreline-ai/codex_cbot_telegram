@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# all_new_cbot - macOS 초기 설정 스크립트
+# codex_cbot_telegram - macOS 초기 설정 스크립트
 
-echo "🚀 all_new_cbot macOS 설정을 시작합니다."
+echo "🚀 codex_cbot_telegram macOS 설정을 시작합니다."
 
 # 1. 폴더 이동
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

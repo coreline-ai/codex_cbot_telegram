@@ -1,4 +1,4 @@
-# all_new_cbot (macOS)  
+# codex_cbot_telegram (macOS)  
 ### Telegram + Codex 자동화 에이전트 with Web Simulator
 
 ![Platform](https://img.shields.io/badge/platform-macOS-black)

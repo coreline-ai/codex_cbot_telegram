@@ -1,5 +1,5 @@
 ﻿"""
-all_new_cbot Skill - Image Generation
+codex_cbot_telegram Skill - Image Generation
 
 Provider priority:
 1) Codex CLI image path (if available): preferred photoreal route.

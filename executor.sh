@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# all_new_cbot - Codex Executor (macOS/Linux)
+# codex_cbot_telegram - Codex Executor (macOS/Linux)
 
 ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 LOG="$ROOT/execution.log"
@@ -31,7 +31,10 @@ if [ -z "$CODEX_EXE" ]; then
 fi
 
 # 2) prevent overlapping runs
-if pgrep -f "codex.*all_new_cbot" > /dev/null; then
+# Keep backward compatibility for legacy workspace name while supporting new name.
+if pgrep -f "codex.*developer_instructions_file=.*codex.md" > /dev/null || \
+   pgrep -f "codex.*all_new_cbot" > /dev/null || \
+   pgrep -f "codex.*codex_cbot_telegram" > /dev/null; then
   echo "[SKIP] Codex busy: $(date)" >> "$LOG"
   exit 0
 fi
