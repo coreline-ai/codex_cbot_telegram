@@ -56,7 +56,7 @@ web_projects/quick_images/
 
 
 # Legacy sample area
-old_sample/
+/old_sample/
 
 # Web Simulator artifacts (Local Only)
 web_simulator/
