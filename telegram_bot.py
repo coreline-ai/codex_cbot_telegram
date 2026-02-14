@@ -19,7 +19,7 @@ POST_WORK_WAIT = int(os.getenv("TELEGRAM_POST_WORK_WAIT", "180"))
 LOCK_FILE = "working.lock"
 HEARTBEAT_INTERVAL = int(os.getenv("TELEGRAM_PROGRESS_HEARTBEAT", "45"))
 TASK_TIMEOUT = int(os.getenv("TELEGRAM_TASK_TIMEOUT", "900"))
-CODEX_MODEL = os.getenv("CODEX_MODEL", "gpt-5.3-codex")
+CODEX_MODEL = os.getenv("CODEX_MODEL", "gpt-5-codex")
 ALLOW_NESTED_CODEX = os.getenv("ALLOW_NESTED_CODEX", "0")
 MACOS_STRICT_MODE = os.getenv("MACOS_STRICT_MODE", "0")
 
@@ -314,4 +314,3 @@ def run_agent_loop():
 
 if __name__ == "__main__":
     run_agent_loop()
-

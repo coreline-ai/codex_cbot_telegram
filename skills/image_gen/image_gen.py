@@ -4,10 +4,11 @@ all_new_cbot Skill - Image Generation
 Provider priority:
 1) Codex CLI image path (if available): preferred photoreal route.
 2) Local SD WebUI API (if available): photorealistic output.
-3) Local Canvas renderer fallback: deterministic no-API output.
+3) Stock-photo fallback (LoremFlickr): photorealistic output.
+4) Local Canvas renderer fallback: deterministic no-API output.
 
 Environment variables:
-- IMAGE_GEN_PROVIDER: auto | codex_cli | sd_webui | canvas  (default: codex_cli)
+- IMAGE_GEN_PROVIDER: auto | codex_cli | sd_webui | stock | canvas  (default: auto)
 - CODEX_EXE: optional absolute path to codex executable (recommended on Windows)
 - CODEX_IMAGE_MODEL: optional codex model override for image sub-task
 - CODEX_IMAGE_MODEL_CANDIDATES: optional comma-separated fallback models
@@ -22,11 +23,16 @@ Environment variables:
 - SD_WEBUI_CFG (default: 7.0)
 - SD_WEBUI_SAMPLER (default: DPM++ 2M Karras)
 - SD_WEBUI_NEGATIVE_PROMPT
+- STOCK_IMAGE_URL_TEMPLATE (optional custom template; supports {width} {height} {query} {seed} {nonce})
+- STOCK_IMAGE_TIMEOUT (default: 25)
+- STOCK_IMAGE_WIDTH / STOCK_IMAGE_HEIGHT (default: 1600 / 1200)
+- STOCK_IMAGE_RETRIES (default: 3)
 """
 
 import asyncio
 import ast
 import base64
+import io
 import json
 import os
 import re
@@ -35,6 +41,8 @@ import subprocess
 import sys
 import time
 from typing import Dict, List, Optional, Tuple
+from urllib.parse import quote_plus
+from urllib.request import Request, urlopen
 
 try:
     import requests
@@ -228,6 +236,11 @@ def _is_readonly_capability_error(error_text: str, stderr: str) -> bool:
     )
 
 
+def _is_image_generation_unavailable(error_text: str) -> bool:
+    s = (error_text or "").lower()
+    return "image generation not available in this environment" in s
+
+
 def _generate_with_codex_cli(prompt: str, image_path: str) -> Dict:
     candidates = _resolve_codex_executables()
     if not candidates:
@@ -321,9 +334,10 @@ def _generate_with_codex_cli(prompt: str, image_path: str) -> Dict:
                     }
                 if payload.get("ok") is False:
                     # Command executed correctly and returned business-level failure.
+                    payload_error = payload.get("error", "codex_cli returned failure payload")
                     failure = {
                         "ok": False,
-                        "error": payload.get("error", "codex_cli returned failure payload"),
+                        "error": payload_error,
                         "stdout": stdout,
                         "stderr": stderr,
                         "returncode": result.returncode,
@@ -335,6 +349,11 @@ def _generate_with_codex_cli(prompt: str, image_path: str) -> Dict:
                         failure["hint"] = (
                             "Nested codex exec appears read-only. "
                             "Try CODEX_IMAGE_BYPASS_SANDBOX=1, or use IMAGE_GEN_PROVIDER=sd_webui."
+                        )
+                    if _is_image_generation_unavailable(payload_error):
+                        failure["hint"] = (
+                            "This Codex runtime currently does not expose native image output. "
+                            "Use IMAGE_GEN_PROVIDER=stock or run a local SD WebUI and set IMAGE_GEN_PROVIDER=sd_webui."
                         )
                     return failure
 
@@ -352,6 +371,11 @@ def _generate_with_codex_cli(prompt: str, image_path: str) -> Dict:
                 last_failure["hint"] = (
                     "Nested codex exec appears read-only. "
                     "Try CODEX_IMAGE_BYPASS_SANDBOX=1, or use IMAGE_GEN_PROVIDER=sd_webui."
+                )
+            if _is_image_generation_unavailable(stdout):
+                last_failure["hint"] = (
+                    "This Codex runtime currently does not expose native image output. "
+                    "Use IMAGE_GEN_PROVIDER=stock or run a local SD WebUI and set IMAGE_GEN_PROVIDER=sd_webui."
                 )
 
             # Retry model candidates on model-access errors.
@@ -483,6 +507,114 @@ def _generate_with_sd_webui(prompt: str, image_path: str) -> Dict:
         }
     except Exception as exc:
         return {"ok": False, "error": f"SD WebUI generation failed: {exc}"}
+
+
+def _stock_query_from_prompt(prompt: str) -> str:
+    tokens = re.findall(r"[a-zA-Z0-9]+", (prompt or "").lower())
+    if not tokens:
+        return "product,studio,photo"
+    compact = []
+    for token in tokens:
+        if token in ("the", "and", "with", "from", "that", "this", "for", "shot", "image"):
+            continue
+        compact.append(token)
+        if len(compact) >= 6:
+            break
+    if not compact:
+        compact = ["product", "studio", "photo"]
+    return ",".join(compact)
+
+
+def _write_png(binary: bytes, image_path: str) -> bool:
+    try:
+        from PIL import Image
+
+        with Image.open(io.BytesIO(binary)) as img:
+            converted = img.convert("RGB")
+            converted.save(image_path, format="PNG", optimize=True)
+        return True
+    except Exception:
+        return False
+
+
+def _generate_with_stock_photo(prompt: str, image_path: str) -> Dict:
+    timeout = _env_int("STOCK_IMAGE_TIMEOUT", 25)
+    width = _env_int("STOCK_IMAGE_WIDTH", 1600)
+    height = _env_int("STOCK_IMAGE_HEIGHT", 1200)
+    retries = max(1, _env_int("STOCK_IMAGE_RETRIES", 3))
+    query = _stock_query_from_prompt(prompt)
+    os.makedirs(os.path.dirname(os.path.abspath(image_path)), exist_ok=True)
+
+    last_error = "unknown"
+    final_url = ""
+    for attempt in range(1, retries + 1):
+        encoded_query = quote_plus(query.replace(",", " "))
+        nonce = int(time.time() * 1000)
+        seed = quote_plus(f"{query}-{nonce}-{attempt}")
+        candidate_urls = [
+            f"https://picsum.photos/seed/{seed}/{width}/{height}",
+            f"https://loremflickr.com/{width}/{height}/{encoded_query}/all?r={nonce}",
+        ]
+        custom_template = (os.getenv("STOCK_IMAGE_URL_TEMPLATE") or "").strip()
+        if custom_template:
+            candidate_urls.insert(
+                0,
+                custom_template.format(
+                    width=width,
+                    height=height,
+                    query=encoded_query,
+                    seed=seed,
+                    nonce=nonce,
+                ),
+            )
+
+        for url in candidate_urls:
+            final_url = url
+            try:
+                req = Request(
+                    url,
+                    headers={
+                        "User-Agent": "codex-cbot-image-gen/1.0",
+                        "Accept": "image/*",
+                    },
+                )
+                with urlopen(req, timeout=timeout) as resp:
+                    binary = resp.read()
+
+                if not binary or len(binary) < 15 * 1024:
+                    last_error = f"received too-small payload ({len(binary) if binary else 0} bytes)"
+                    continue
+
+                if not _write_png(binary, image_path):
+                    with open(image_path, "wb") as f:
+                        f.write(binary)
+
+                if not os.path.exists(image_path) or os.path.getsize(image_path) < 15 * 1024:
+                    last_error = "saved file is missing or too small"
+                    continue
+
+                return {
+                    "ok": True,
+                    "provider": "stock",
+                    "prompt": prompt,
+                    "image_path": image_path,
+                    "meta": {
+                        "url": url,
+                        "query": query,
+                        "width": width,
+                        "height": height,
+                        "attempt": attempt,
+                    },
+                }
+            except Exception as exc:
+                last_error = str(exc)
+                continue
+
+    return {
+        "ok": False,
+        "error": f"stock provider failed after {retries} attempts: {last_error}",
+        "meta": {"url": final_url, "query": query, "retries": retries},
+    }
 
 
 def _build_canvas_html(prompt: str) -> str:
@@ -761,7 +893,7 @@ async def generate_image(prompt: str):
     html_path = os.path.join(GEN_DIR, f"{timestamp}_{slug}.html")
     image_path = os.path.join(GEN_DIR, f"{timestamp}_{slug}.png")
 
-    provider = os.getenv("IMAGE_GEN_PROVIDER", "codex_cli").strip().lower()
+    provider = os.getenv("IMAGE_GEN_PROVIDER", "auto").strip().lower()
     attempts = []
 
     try:
@@ -788,6 +920,18 @@ async def generate_image(prompt: str):
                 sd_result["image_path"] = image_path
                 sd_result["html_path"] = None
                 return sd_result
+
+        if provider in ("auto", "stock"):
+            stock_result = _generate_with_stock_photo(normalized, image_path)
+            attempts.append({"provider": "stock", "ok": stock_result.get("ok"), "error": stock_result.get("error")})
+            if stock_result.get("ok"):
+                stock_result.update({"prompt": normalized, "html_path": None, "attempts": attempts})
+                return stock_result
+            if provider == "stock":
+                stock_result["attempts"] = attempts
+                stock_result["image_path"] = image_path
+                stock_result["html_path"] = None
+                return stock_result
 
         canvas_result = await _generate_with_canvas(normalized, html_path, image_path)
         attempts.append({"provider": "canvas", "ok": canvas_result.get("ok"), "error": canvas_result.get("error")})

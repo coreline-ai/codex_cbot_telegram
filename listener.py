@@ -32,9 +32,10 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 ALLOWED_USERS = [int(u.strip()) for u in os.getenv("TELEGRAM_ALLOWED_USERS", "").split(",") if u.strip()]
 HEARTBEAT_INTERVAL = int(os.getenv("TELEGRAM_PROGRESS_HEARTBEAT", "45"))
 TASK_TIMEOUT = int(os.getenv("TELEGRAM_TASK_TIMEOUT", "900"))
-CODEX_MODEL = os.getenv("CODEX_MODEL", "gpt-5.3-codex")
+CODEX_MODEL = os.getenv("CODEX_MODEL", "gpt-5-codex")
 ALLOW_NESTED_CODEX = os.getenv("ALLOW_NESTED_CODEX", "0")
 MACOS_STRICT_MODE = os.getenv("MACOS_STRICT_MODE", "0")
+RUN_MODE = os.getenv("RUN_MODE", "telegram").strip().lower()
 
 _DIR = os.path.dirname(os.path.abspath(__file__))
 MESSAGES_FILE = os.path.join(_DIR, "messages.json")
@@ -325,6 +326,10 @@ async def fetch_updates():
 
 
 async def main():
+    if RUN_MODE == "webmock":
+        print("[LISTENER] RUN_MODE=webmock. Telegram listener is disabled for this mode.")
+        return
+
     print("=" * 50)
     print("all_new_cbot Listener")
     print("=" * 50)

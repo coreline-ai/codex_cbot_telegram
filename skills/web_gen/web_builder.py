@@ -6,12 +6,13 @@ import base64
 import re
 import shutil
 import ast
+from urllib.parse import quote
 
 
 def _strict_realistic_enabled():
     """
-    If enabled, *_realistic assets must come from an actual photoreal provider
-    (currently sd_webui). Canvas fallback is treated as failure.
+    If enabled, *_realistic assets must come from a photoreal provider
+    (codex_cli, sd_webui, stock). Canvas fallback is treated as failure.
     """
     raw = os.getenv("STRICT_REALISTIC_ASSETS", "1").strip().lower()
     return raw not in ("0", "false", "no", "off")
@@ -224,8 +225,12 @@ def run_image_gen_subprocess(prompt, output_path, image_gen_script, timeout_sec=
 
     if not isinstance(payload, dict) or not payload.get("ok"):
         print("[ERROR] image_gen subprocess returned invalid payload.")
+        if isinstance(payload, dict):
+            print(f"[DETAIL] {payload.get('error', 'unknown error')}")
         if stdout:
             print(f"[STDOUT] {stdout}")
+        if stderr:
+            print(f"[STDERR] {stderr}")
         return False
 
     provider = (payload.get("provider") or "").strip()
@@ -294,7 +299,7 @@ def generate_photorealistic_assets(assets, project_dir):
             final_prompt,
             full_output_path,
             image_gen_script,
-            expected_provider="sd_webui|codex_cli" if strict_realistic else None,
+            expected_provider="sd_webui|codex_cli|stock" if strict_realistic else None,
         )
         if generated:
             print(f"  - [OK] Generated via image_gen subprocess: {output_file}")
@@ -466,6 +471,18 @@ def smart_sync_assets(html_content, project_dir, source_dir="assets"):
                     shutil.copy2(src, dest)
                 break
 
+
+def _resolve_preview_base_url():
+    base = (os.getenv("WEB_PREVIEW_BASE_URL") or "").strip()
+    if not base:
+        base = "http://127.0.0.1:8080/api/files"
+    return base.rstrip("/")
+
+
+def _build_preview_url(base_dir, abs_file_path):
+    rel = os.path.relpath(abs_file_path, base_dir).replace(os.sep, "/")
+    return f"{_resolve_preview_base_url()}/{quote(rel, safe='/')}"
+
 def create_web_package(project_name, html_content, css_content, assets=None, mode="link"):
     """
     Creates a web project directory structure and writes the files.
@@ -542,6 +559,25 @@ def create_web_package(project_name, html_content, css_content, assets=None, mod
         with open(os.path.join(project_dir, "index.html"), "w", encoding="utf-8") as f:
             f.write(sealed_html)
         print("[SUCCESS] Package sealed with Base64 assets.")
+
+    index_path = os.path.join(project_dir, "index.html")
+    styles_path = os.path.join(project_dir, "styles.css")
+    preview_url = _build_preview_url(base_dir, index_path)
+    styles_url = _build_preview_url(base_dir, styles_path)
+    preview_info = {
+        "project": project_name,
+        "mode": mode,
+        "project_dir": project_dir,
+        "index_path": index_path,
+        "styles_path": styles_path,
+        "preview_url": preview_url,
+        "styles_url": styles_url,
+    }
+    with open(os.path.join(project_dir, "deploy_info.json"), "w", encoding="utf-8") as f:
+        json.dump(preview_info, f, ensure_ascii=False, indent=2)
+
+    print(f"[URL] Preview: {preview_url}")
+    return preview_info
 
 def main():
     parser = argparse.ArgumentParser(description="Advanced Web Landing Page Builder")

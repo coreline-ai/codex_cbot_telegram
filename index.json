@@ -1,6 +1,211 @@
 {
   "tasks": [
     {
+      "message_id": 18,
+      "timestamp": "2026-02-14 22:53:25",
+      "instruction": "학교소개 랜더 페이지 만들어줘",
+      "keywords": [
+        "학교소개",
+        "랜더",
+        "페이지",
+        "만들어줘"
+      ],
+      "summary": "학교 소개 랜딩 페이지 생성 후 zip 패키지 전달",
+      "files": []
+    },
+    {
+      "message_id": 17,
+      "timestamp": "2026-02-14 22:09:44",
+      "instruction": "베이커리 랜더 페이지 만들어줘!",
+      "keywords": [
+        "베이커리",
+        "랜더",
+        "페이지",
+        "만들어줘"
+      ],
+      "summary": "Warm cafe/bakery landing page generated and delivered as Dawn Oven Bakery web package.",
+      "files": []
+    },
+    {
+      "message_id": 16,
+      "timestamp": "2026-02-14 21:40:08",
+      "instruction": "랜더로 띄워죠",
+      "keywords": [
+        "랜더로",
+        "띄워죠"
+      ],
+      "summary": "Render.com에 서비스 배포하는 절차를 단계별로 안내했습니다.",
+      "files": []
+    },
+    {
+      "message_id": 15,
+      "timestamp": "2026-02-14 21:37:38",
+      "instruction": "카페 랜더 현대 디자인에 맞게 페이지 만들어줘",
+      "keywords": [
+        "카페",
+        "랜더",
+        "현대",
+        "디자인에",
+        "맞게",
+        "페이지",
+        "만들어줘"
+      ],
+      "summary": "현대적 무드의 Lander Cafe 랜딩 페이지와 에셋 묶음을 제작해 전달",
+      "files": []
+    },
+    {
+      "message_id": 14,
+      "timestamp": "2026-02-14 21:33:28",
+      "instruction": "하이",
+      "keywords": [
+        "하이"
+      ],
+      "summary": "사용자 인사에 대한 응답 및 도우미 안내 전달",
+      "files": []
+    },
+    {
+      "message_id": 13,
+      "timestamp": "2026-02-14 21:05:14",
+      "instruction": "신발 상점 랜더링 페이지 만들어줘",
+      "keywords": [
+        "신발",
+        "상점",
+        "랜더링",
+        "페이지",
+        "만들어줘"
+      ],
+      "summary": "패션/스니커즈 니치로 브리프 확장 후 web_master 파이프라인 실행해 랜딩 페이지(index+styles) 생성. Playwright 미설치로 실사이트 분석/캔버스 렌더는 건너뛰고 모의 연구로 진행, 생성 결과 zip 전달 완료.",
+      "files": []
+    },
+    {
+      "message_id": 12,
+      "timestamp": "2026-02-14 20:59:59",
+      "instruction": "web control ping",
+      "keywords": [
+        "web",
+        "control",
+        "ping"
+      ],
+      "summary": "Responded to control ping with status pong.",
+      "files": []
+    },
+    {
+      "message_id": 11,
+      "timestamp": "2026-02-14 20:54:47",
+      "instruction": "너 누구니?",
+      "keywords": [
+        "누구니"
+      ],
+      "summary": "Codex agent self-introduction delivered.",
+      "files": []
+    },
+    {
+      "message_id": 10,
+      "timestamp": "2026-02-14 20:38:49",
+      "instruction": "재실행 확인 테스트",
+      "keywords": [
+        "재실행",
+        "확인",
+        "테스트"
+      ],
+      "summary": "재실행 확인 테스트 요청 처리 완료",
+      "files": []
+    },
+    {
+      "message_id": 9,
+      "timestamp": "2026-02-14 20:24:05",
+      "instruction": "병렬 테스트 가능해? 10개 정도 병렬 agent 로 작업 하는 시뮬레이션 진행 해줘!",
+      "keywords": [
+        "병렬",
+        "테스트",
+        "가능해",
+        "10개",
+        "정도",
+        "agent",
+        "작업",
+        "하는",
+        "시뮬레이션",
+        "진행",
+        "해줘"
+      ],
+      "summary": "10개 에이전트를 ingest→synthesize→review 파이프라인으로 시뮬레이션하고 makespan 7.85분, 평균 완료 오프셋 6.54분, 피크 동시 처리 10명 결과를 보고했습니다.",
+      "files": []
+    },
+    {
+      "message_id": 8,
+      "timestamp": "2026-02-14 20:22:49",
+      "instruction": "최종 상태 점검",
+      "keywords": [
+        "최종",
+        "상태",
+        "점검"
+      ],
+      "summary": "최종 상태 점검 결과\n- core.check_messages() 호출 성공: 미처리 2건 (#8, #9)\n- 대상 #8 '최종 상태 점검' 에 대한 ACK 및 리포트 전송 완료\n- 현재 단계에서 추가 오류나 경고는 감지되지 않았습니다",
+      "files": []
+    },
+    {
+      "message_id": 7,
+      "timestamp": "2026-02-14 20:21:53",
+      "instruction": "nested guard 해제 확인",
+      "keywords": [
+        "nested",
+        "guard",
+        "해제",
+        "확인"
+      ],
+      "summary": "ALLOW_NESTED_CODEX 기본값이 0이라 nested guard가 계속 활성화되어 있음을 보고하고 해제 방법 안내",
+      "files": []
+    },
+    {
+      "message_id": 6,
+      "timestamp": "2026-02-14 20:20:31",
+      "instruction": "큐 연속 처리 테스트",
+      "keywords": [
+        "연속",
+        "처리",
+        "테스트"
+      ],
+      "summary": "첫 번째 미처리 메시지에 대해 ACK→결과 보고까지의 연속 처리 플로우를 검증했습니다.",
+      "files": []
+    },
+    {
+      "message_id": 5,
+      "timestamp": "2026-02-14 20:19:56",
+      "instruction": "동작 확인 2",
+      "keywords": [
+        "동작",
+        "확인"
+      ],
+      "summary": "동작 확인 2 처리 및 상태 점검 완료",
+      "files": []
+    },
+    {
+      "message_id": 4,
+      "timestamp": "2026-02-14 20:19:04",
+      "instruction": "상태 점검용 테스트 메시지",
+      "keywords": [
+        "상태",
+        "점검용",
+        "테스트",
+        "메시지"
+      ],
+      "summary": "상태 점검 메시지에 대한 응답 및 기본 점검 보고 완료",
+      "files": []
+    },
+    {
+      "message_id": 3,
+      "timestamp": "2026-02-14 20:14:03",
+      "instruction": "너는 누구인지 자세히 설명해줘",
+      "keywords": [
+        "너는",
+        "누구인지",
+        "자세히",
+        "설명해줘"
+      ],
+      "summary": "Codex 에이전트 자기소개 응답 전송",
+      "files": []
+    },
+    {
       "message_id": 2,
       "timestamp": "2026-02-13 13:12:58",
       "instruction": "멋진 카페 렌더 페이지 만들어줘",

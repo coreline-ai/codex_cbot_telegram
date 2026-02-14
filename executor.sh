@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 
 # all_new_cbot - Codex Executor (macOS/Linux)
 
@@ -8,7 +8,7 @@ SPF="$ROOT/codex.md"
 ROUTER="$ROOT/router.py"
 CODEX_EXE=$(which codex)
 PYTHON_EXE="${PYTHON_EXE:-python3}"
-CODEX_MODEL="${CODEX_MODEL:-gpt-5.3-codex}"
+CODEX_MODEL="${CODEX_MODEL:-gpt-5-codex}"
 CODEX_USE_RESUME="${CODEX_USE_RESUME:-0}"
 ALLOW_NESTED_CODEX="${ALLOW_NESTED_CODEX:-0}"
 
@@ -80,17 +80,17 @@ Use only current contract APIs from core.py:
 - forbidden: telegram_bot.reserve_memory_telegram, telegram_bot.report_telegram, telegram_bot.mark_done_telegram
 
 Transaction contract (mandatory):
-1) call core.check_messages and pick the first unprocessed message only
-2) send quick ACK via core.send_message
-3) understand the natural-language instruction first, then execute:
+1. call core.check_messages and pick the first unprocessed message only
+2. send quick ACK via core.send_message
+3. understand the natural-language instruction first, then execute:
    python3 skills/web_master/master_orchestrator.py --project "$PROJECT_NAME" --brief "<instruction text with domain/style clarification>"
    - If domain hint exists, preserve it explicitly in brief.
    - For Korean domain terms, add short English anchor words so downstream niche detection is reliable.
    - Example for domain=cafe: include "cafe coffee roastery" in brief context.
-4) if long-running, send concise progress updates via core.send_message
-5) check generated result aligns with inferred domain intent; if mismatch is visible, regenerate once with corrected brief
-6) send major outputs via core.send_document/core.send_photo if files exist
-7) call core.mark_as_done(message_id=$MESSAGE_ID, instruction, summary)
+4. if long-running, send concise progress updates via core.send_message
+5. check generated result aligns with inferred domain intent; if mismatch is visible, regenerate once with corrected brief
+6. send major outputs via core.send_document/core.send_photo if files exist
+7. call core.mark_as_done(message_id=$MESSAGE_ID, instruction, summary)
 
 Be robust: prioritize semantic intent over literal keyword matching.
 Keep output concise and operational.
@@ -107,13 +107,13 @@ Use only current contract APIs from core.py:
 - forbidden: telegram_bot.reserve_memory_telegram, telegram_bot.report_telegram, telegram_bot.mark_done_telegram
 
 Transaction contract (mandatory):
-1) call core.check_messages and pick the first unprocessed message only
-2) send quick ACK via core.send_message
-3) understand the natural-language instruction first, then execute:
+1. call core.check_messages and pick the first unprocessed message only
+2. send quick ACK via core.send_message
+3. understand the natural-language instruction first, then execute:
    python3 skills/image_gen/image_gen.py "<instruction text>"
-4) if long-running, send concise progress updates via core.send_message
-5) if image generation succeeds, send image via core.send_photo with short caption
-6) call core.mark_as_done(message_id=$MESSAGE_ID, instruction, summary)
+4. if long-running, send concise progress updates via core.send_message
+5. if image generation succeeds, send image via core.send_photo with short caption
+6. call core.mark_as_done(message_id=$MESSAGE_ID, instruction, summary)
 
 If image_gen execution fails, perform a safe local fallback with canvas_render workflow.
 EOF

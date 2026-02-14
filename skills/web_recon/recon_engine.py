@@ -3,7 +3,11 @@ import sys
 import json
 import argparse
 import time
-from playwright.sync_api import sync_playwright
+
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:  # pragma: no cover - graceful degradation when Playwright is missing
+    sync_playwright = None
 
 
 class ReconEngine:
@@ -50,7 +54,7 @@ class ReconEngine:
         }
 
         typography = "Playfair Display" if niche in ("Luxury", "Cafe", "Fashion") else "Inter"
-        layout = "Hero-Centric"
+        layout = self._infer_layout(topic, niche)
 
         print(f"[RECON] Identified market niche: {niche}")
 
@@ -61,8 +65,33 @@ class ReconEngine:
             "layout": layout,
         }
 
+    def _infer_layout(self, topic, niche):
+        lower = (topic or "").lower()
+
+        if any(k in lower for k in ["split", "좌우", "two column", "2 column"]):
+            return "split_showcase"
+        if any(k in lower for k in ["editorial", "magazine", "스토리", "story"]):
+            return "editorial_stack"
+        if any(k in lower for k in ["catalog", "grid", "list", "상품목록", "목록"]):
+            return "catalog_grid"
+        if any(k in lower for k in ["hero", "fullscreen", "full screen"]):
+            return "hero_centered"
+
+        niche_defaults = {
+            "Tech": "split_showcase",
+            "Fashion": "editorial_stack",
+            "Cafe": "hero_centered",
+            "Travel": "catalog_grid",
+            "Medical": "split_showcase",
+            "Luxury": "hero_centered",
+        }
+        return niche_defaults.get(niche, "hero_centered")
+
     def _analyze_site(self, url, output_dir):
         """Analyze a website structure and save metadata + screenshot."""
+        if sync_playwright is None:
+            raise RuntimeError("Playwright is required for live site analysis but is not installed")
+
         os.makedirs(output_dir, exist_ok=True)
 
         with sync_playwright() as p:

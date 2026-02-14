@@ -1,7 +1,10 @@
 import sys
 import os
 import time
-from playwright.sync_api import sync_playwright
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:  # pragma: no cover - renderer falls back when missing
+    sync_playwright = None
 
 def render_canvas(html_path, output_path, selector="#canvas-container", wait_time=2):
     """
@@ -17,6 +20,9 @@ def render_canvas(html_path, output_path, selector="#canvas-container", wait_tim
 
     abs_html_path = os.path.abspath(html_path)
     file_url = f"file:///{abs_html_path}".replace("\\", "/")
+
+    if sync_playwright is None:
+        raise RuntimeError("Playwright is required for canvas rendering but is not installed")
 
     with sync_playwright() as p:
         browser = None

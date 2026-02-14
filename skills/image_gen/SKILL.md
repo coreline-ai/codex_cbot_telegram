@@ -1,23 +1,27 @@
 ---
 name: image_gen
-description: "Generates high-resolution images locally using HTML5 Canvas and Playwright. This skill allows the bot to 'code' its own artwork (abstract art, charts, logos, robots) without any external API costs by rendering a local HTML file and capturing a screenshot."
+description: "Generates images through multiple providers (Codex native image, SD WebUI, stock photo fallback, canvas rendering)."
 ---
 
-# Image Generation (Canvas Rendering)
+# Image Generation (Multi-Provider)
 
 ## Overview
-This skill implements the "non-API" image generation approach. Instead of calling expensive external services, it utilizes the bot's coding capabilities to create images.
+This skill uses a reliability-first provider chain:
+1. `codex_cli` native image path (when available)
+2. `sd_webui` local Stable Diffusion API
+3. `stock` photoreal fallback (LoremFlickr)
+4. `canvas` deterministic local render (Playwright screenshot)
 
 ## Core Capabilities
-1. **Dynamic HTML/Canvas Generation**: The agent writes full HTML5/Canvas/JS code based on the user's prompt.
-2. **Local Headless Rendering**: Uses `canvas_render.py` (Playwright) to open the HTML and capture a 1200x1200px screenshot.
-3. **Zero Cost**: Entirely free and unlimited as it runs on local hardware/browser sessions.
+1. **Photoreal Priority**: Attempts real-image providers first (`codex_cli`, `sd_webui`, `stock`).
+2. **Deterministic Fallback**: Uses local Canvas + Playwright when photoreal providers are unavailable.
+3. **Portable CLI**: `skills/image_gen/image_gen.py "<prompt>"` always returns JSON payload with provider/error.
 
 ## Usage Protocol
 1. **Install Browser Runtime (one-time)**: Run `python -m playwright install chromium`.
-2. **Create HTML**: Code the visual logic in an HTML file. Wrap the target drawing area in a `<div id="canvas-container">`.
-3. **Render**: Run `python skills/image_gen/canvas_render.py <input.html> <output.png>`.
-4. **Send**: Use `core.send_photo` to deliver the final image to the user.
+2. **Default Use**: Run `python skills/image_gen/image_gen.py "<prompt>"` (`IMAGE_GEN_PROVIDER=auto`).
+3. **Forced Provider**: Override via `IMAGE_GEN_PROVIDER` (`codex_cli`, `sd_webui`, `stock`, `canvas`).
+4. **Send**: Use `core.send_photo` to deliver the output image path.
 
 ## Best Practices
 - **Explicit Width/Height**: Always define fixed dimensions for the canvas element.

@@ -12,6 +12,12 @@ import os
 import json
 import asyncio
 from datetime import datetime
+from contextlib import contextmanager
+
+try:
+    import fcntl
+except Exception:  # pragma: no cover
+    fcntl = None  # type: ignore
 
 try:
     from dotenv import load_dotenv
@@ -37,6 +43,8 @@ ALLOWED_USERS = [int(u.strip()) for u in os.getenv("TELEGRAM_ALLOWED_USERS", "")
 _DIR = os.path.dirname(os.path.abspath(__file__))
 MESSAGES_FILE = os.path.join(_DIR, "messages.json")
 WORKING_FILE = os.path.join(_DIR, "working.json")
+WEB_OUTBOX_FILE = os.path.join(_DIR, "web_outbox.json")
+MESSAGE_CHANNEL = os.getenv("MESSAGE_CHANNEL", "telegram").strip().lower()
 
 
 def load_json(path, default):
@@ -50,12 +58,55 @@ def load_json(path, default):
 
 
 def save_json(path, data):
-    with open(path, "w", encoding="utf-8") as f:
+    tmp = f"{path}.tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, path)
+
+
+@contextmanager
+def _file_lock(path):
+    lock_path = f"{path}.lock"
+    os.makedirs(os.path.dirname(lock_path), exist_ok=True)
+    with open(lock_path, "a+", encoding="utf-8") as lock_file:
+        if fcntl is not None:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            if fcntl is not None:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+
+def _normalize_saved_path(path):
+    abs_target = os.path.abspath(path)
+    try:
+        return os.path.relpath(abs_target, _DIR)
+    except Exception:
+        return abs_target
+
+
+def _append_webmock_message(entry):
+    with _file_lock(WEB_OUTBOX_FILE):
+        data = load_json(WEB_OUTBOX_FILE, {"messages": []})
+        data.setdefault("messages", []).append(entry)
+        save_json(WEB_OUTBOX_FILE, data)
+    return True
 
 
 async def send_message(chat_id, text, parse_mode="Markdown"):
     """Send Telegram message with chunking and markdown fallback."""
+    if MESSAGE_CHANNEL == "webmock":
+        return _append_webmock_message(
+            {
+                "type": "message",
+                "chat_id": int(chat_id),
+                "text": str(text),
+                "parse_mode": parse_mode,
+                "timestamp": str(datetime.now()),
+            }
+        )
+
     if Bot is None:
         print("[CORE] python-telegram-bot not installed. send_message skipped.")
         return False
@@ -93,6 +144,20 @@ async def send_message(chat_id, text, parse_mode="Markdown"):
 
 async def send_photo(chat_id, photo_path, caption=None):
     """Send Telegram photo."""
+    if MESSAGE_CHANNEL == "webmock":
+        if not os.path.exists(photo_path):
+            print(f"[WEBMOCK] File missing: {photo_path}")
+            return False
+        return _append_webmock_message(
+            {
+                "type": "photo",
+                "chat_id": int(chat_id),
+                "photo_path": _normalize_saved_path(photo_path),
+                "caption": caption or "",
+                "timestamp": str(datetime.now()),
+            }
+        )
+
     if Bot is None:
         print("[CORE] python-telegram-bot not installed. send_photo skipped.")
         return False
@@ -118,6 +183,20 @@ async def send_photo(chat_id, photo_path, caption=None):
 
 async def send_document(chat_id, file_path, caption=None):
     """Send Telegram document."""
+    if MESSAGE_CHANNEL == "webmock":
+        if not os.path.exists(file_path):
+            print(f"[WEBMOCK] File missing: {file_path}")
+            return False
+        return _append_webmock_message(
+            {
+                "type": "document",
+                "chat_id": int(chat_id),
+                "file_path": _normalize_saved_path(file_path),
+                "caption": caption or "",
+                "timestamp": str(datetime.now()),
+            }
+        )
+
     if Bot is None:
         print("[CORE] python-telegram-bot not installed. send_document skipped.")
         return False
@@ -153,7 +232,8 @@ async def send_document(chat_id, file_path, caption=None):
 
 def check_messages():
     """Return unprocessed messages from messages.json."""
-    data = load_json(MESSAGES_FILE, {"messages": [], "last_update_id": 0})
+    with _file_lock(MESSAGES_FILE):
+        data = load_json(MESSAGES_FILE, {"messages": [], "last_update_id": 0})
     return [m for m in data.get("messages", []) if not m.get("processed")]
 
 
@@ -162,14 +242,15 @@ def mark_as_done(message_id, instruction=None, result_summary="", summary=None):
     if summary is not None and not result_summary:
         result_summary = summary
 
-    data = load_json(MESSAGES_FILE, {"messages": [], "last_update_id": 0})
-    target_msg = None
-    for m in data.get("messages", []):
-        if m.get("message_id") == message_id:
-            m["processed"] = True
-            target_msg = m
-            break
-    save_json(MESSAGES_FILE, data)
+    with _file_lock(MESSAGES_FILE):
+        data = load_json(MESSAGES_FILE, {"messages": [], "last_update_id": 0})
+        target_msg = None
+        for m in data.get("messages", []):
+            if m.get("message_id") == message_id:
+                m["processed"] = True
+                target_msg = m
+                break
+        save_json(MESSAGES_FILE, data)
 
     if target_msg:
         memory.update_index(

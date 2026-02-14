@@ -15,6 +15,134 @@
       "text": "멋진 카페 렌더 페이지 만들어줘",
       "timestamp": "2026-02-13 13:12:38.797669",
       "processed": true
+    },
+    {
+      "message_id": 3,
+      "chat_id": 10001,
+      "user": "Web User",
+      "text": "너는 누구인지 자세히 설명해줘",
+      "timestamp": "2026-02-14 19:55:24.842780",
+      "processed": true
+    },
+    {
+      "message_id": 4,
+      "chat_id": 10001,
+      "user": "Web User",
+      "text": "상태 점검용 테스트 메시지",
+      "timestamp": "2026-02-14 20:12:30.048935",
+      "processed": true
+    },
+    {
+      "message_id": 5,
+      "chat_id": 10001,
+      "user": "Web User",
+      "text": "동작 확인 2",
+      "timestamp": "2026-02-14 20:13:27.069166",
+      "processed": true
+    },
+    {
+      "message_id": 6,
+      "chat_id": 10001,
+      "user": "Web User",
+      "text": "큐 연속 처리 테스트",
+      "timestamp": "2026-02-14 20:16:08.062387",
+      "processed": true
+    },
+    {
+      "message_id": 7,
+      "chat_id": 10001,
+      "user": "Web User",
+      "text": "nested guard 해제 확인",
+      "timestamp": "2026-02-14 20:17:16.448170",
+      "processed": true
+    },
+    {
+      "message_id": 8,
+      "chat_id": 10001,
+      "user": "Web User",
+      "text": "최종 상태 점검",
+      "timestamp": "2026-02-14 20:18:26.517043",
+      "processed": true
+    },
+    {
+      "message_id": 9,
+      "chat_id": 10001,
+      "user": "Web User",
+      "text": "병렬 테스트 가능해? 10개 정도 병렬 agent 로 작업 하는 시뮬레이션 진행 해줘!",
+      "timestamp": "2026-02-14 20:21:28.625992",
+      "processed": true
+    },
+    {
+      "message_id": 10,
+      "chat_id": 10001,
+      "user": "Web User",
+      "text": "재실행 확인 테스트",
+      "timestamp": "2026-02-14 20:37:57.834950",
+      "processed": true
+    },
+    {
+      "message_id": 11,
+      "chat_id": 10001,
+      "user": "Web User",
+      "text": "너 누구니?",
+      "timestamp": "2026-02-14 20:54:10.191581",
+      "processed": true
+    },
+    {
+      "message_id": 12,
+      "chat_id": 10001,
+      "user": "Web Control",
+      "text": "web control ping",
+      "timestamp": "2026-02-14 20:59:29.620986",
+      "processed": true
+    },
+    {
+      "message_id": 13,
+      "chat_id": 10001,
+      "user": "Web User",
+      "text": "신발 상점 랜더링 페이지 만들어줘",
+      "timestamp": "2026-02-14 21:00:51.954718",
+      "processed": true
+    },
+    {
+      "message_id": 14,
+      "chat_id": 10001,
+      "user": "Web User",
+      "text": "하이",
+      "timestamp": "2026-02-14 21:32:40.685035",
+      "processed": true
+    },
+    {
+      "message_id": 15,
+      "chat_id": 10001,
+      "user": "Web User",
+      "text": "카페 랜더 현대 디자인에 맞게 페이지 만들어줘",
+      "timestamp": "2026-02-14 21:33:43.213064",
+      "processed": true
+    },
+    {
+      "message_id": 16,
+      "chat_id": 10001,
+      "user": "Web User",
+      "text": "랜더로 띄워죠",
+      "timestamp": "2026-02-14 21:39:20.948121",
+      "processed": true
+    },
+    {
+      "message_id": 17,
+      "chat_id": 10001,
+      "user": "Web User",
+      "text": "베이커리 랜더 페이지 만들어줘!",
+      "timestamp": "2026-02-14 22:05:39.712322",
+      "processed": true
+    },
+    {
+      "message_id": 18,
+      "chat_id": 10001,
+      "user": "Web User",
+      "text": "학교소개 랜더 페이지 만들어줘",
+      "timestamp": "2026-02-14 22:49:09.046731",
+      "processed": true
     }
   ],
   "last_update_id": 0

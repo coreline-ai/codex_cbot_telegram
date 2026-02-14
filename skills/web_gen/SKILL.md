@@ -63,7 +63,7 @@ Before generating any code, you must select a design system that matches the bra
 - **Photorealistic Priority**: For "Elite" or "Premium" projects, **never** use abstract blueprints or minimal vector-like images if photorealistic assets are feasible.
 - **Smart Generation**: Always use the `generate_image` tool with descriptive, professional photography prompts (e.g., "Cinematic lighting", "Macro food photography", "Minimalist architectural interior").
 - **Asset Placement**: All generated assets must be saved to `[project]/assets/` and linked via relative paths in `index.html`.
-- **Placeholder Fallback**: If generation is unavailable, use high-fidelity Unsplash or professional placeholders that match the brand's aesthetic, never basic solid-color divs.
+- **Fallback Order**: Use photoreal providers in this order: `codex_cli` -> `sd_webui` -> `stock`. Use `canvas` only as the last safety fallback.
 
 ### Anti-Screenshot Protocol (Context-Aware)
 
@@ -77,6 +77,7 @@ Before generating any code, you must select a design system that matches the bra
 
 ## Script: `web_builder.py`
 Usage: `python skills/web_gen/web_builder.py --project "<name>" [--link | --seal]`
+Preview URL base can be configured with `WEB_PREVIEW_BASE_URL` (default `http://127.0.0.1:8080/api/files`).
 
 **Enhanced Features**:
 - **Automatic Smart Sync**: In Link Mode, the script automatically copies referenced assets from the environment to the project's local `/assets/` directory.
@@ -89,4 +90,3 @@ Usage: `python skills/web_gen/web_builder.py --project "<name>" [--link | --seal
 - **Zero Dependencies**: Aim for self-contained packages via Base64 embedding.
 - **Premium Aesthetics**: Use modern typography (Inter), 8pt grids, and clean whitespace.
 - **SEO Optimized**: Include proper meta tags and semantic HTML.
-

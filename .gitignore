@@ -1,0 +1,65 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.nox/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+pip-wheel-metadata/
+*.egg-info/
+.eggs/
+.python-version
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Runtime/state artifacts
+execution.log
+messages.json
+index.json
+working.json
+web_outbox.json
+test_runs/
+
+# Generated local outputs
+web_projects/*.zip
+web_projects/quick_images/
+
+
+# Legacy sample area
+old_sample/
+
+# Web Simulator artifacts (Local Only)
+web_simulator/
+simulator_messenger_server.py
+docs/web_simulator_messenger_*.md
+tests/test_web_simulator_messenger.py

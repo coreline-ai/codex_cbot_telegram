@@ -27,3 +27,4 @@ Usage: `python skills/web_master/master_orchestrator.py --brief "<user_request>"
 **Outputs**:
 - Incremental previews for each phase.
 - A final, verified, and animated web package.
+- Final deployment preview URL (default: `http://127.0.0.1:8080/api/files/.../index.html`).

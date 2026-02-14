@@ -21,6 +21,20 @@ def test_required_files_threshold_after_package_build(cleanup_project, unique_pr
     assert (project_dir / "styles.css").exists()
 
 
+def test_package_build_exposes_preview_url(cleanup_project, unique_project_name):
+    project_name = unique_project_name
+    project_dir = cleanup_project(project_name)
+    html = "<!doctype html><html><head><title>Preview</title></head><body><h1>Preview</h1></body></html>"
+    css = "body{font-family:sans-serif}"
+
+    result = create_web_package(project_name=project_name, html_content=html, css_content=css, assets=[], mode="link")
+
+    assert isinstance(result, dict)
+    assert "preview_url" in result
+    assert result["preview_url"].endswith(f"/web_projects/{project_name}/index.html")
+    assert (project_dir / "deploy_info.json").exists()
+
+
 def test_audit_score_threshold_for_valid_page(tmp_path):
     project_dir = tmp_path / "audit_project"
     project_dir.mkdir(parents=True, exist_ok=True)
@@ -55,4 +69,3 @@ def test_subprocess_timeout_threshold_for_image_gen_adapter(tmp_path):
 
     assert ok is False
     assert elapsed < 1.5
-
