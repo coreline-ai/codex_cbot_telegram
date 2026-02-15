@@ -7,6 +7,10 @@
 ![Router](https://img.shields.io/badge/router-NL%20intent-orange)
 ![Status](https://img.shields.io/badge/status-active-success)
 
+<p align="center">
+<img width="1300" height="863" alt="스크린샷 2026-02-15 오후 4 52 21" src="https://github.com/user-attachments/assets/f918b0e8-2d05-40b6-84dc-dcab5bf8672e" />
+</p>
+
 Telegram 메시지를 받아 Codex 워크플로를 자동 실행하고, 결과를 다시 Telegram(또는 웹 시뮬레이터)로 반환하는 로컬 자동화 프로젝트입니다.  
 핵심은 `messages.json` 큐 기반 처리 + `router.py` 자연어 라우팅 + `executor.sh` 단일 실행 계약입니다.
 
