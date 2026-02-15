@@ -14,10 +14,6 @@ from datetime import datetime
 
 _DIR = os.path.dirname(os.path.abspath(__file__))
 INDEX_FILE = os.path.join(_DIR, "index.json")
-MEM_DIR = os.path.join(_DIR, "memory")
-
-if not os.path.exists(MEM_DIR):
-    os.makedirs(MEM_DIR)
 
 def load_index():
     if os.path.exists(INDEX_FILE):

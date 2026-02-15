@@ -36,10 +36,6 @@ else
     echo "✅ .env 파일 이미 존재합니다."
 fi
 
-# 6. memory 폴더 확인
-mkdir -p memory
-echo "✅ memory/ 폴더 확인."
-
 echo ""
 echo "🎉 모든 설정이 완료되었습니다!"
 echo "================================================"

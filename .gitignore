@@ -48,11 +48,17 @@ messages.json
 index.json
 working.json
 web_outbox.json
+web_chat_history.json
+*.json.lock
+working.lock
 test_runs/
 
 # Generated local outputs
+skills/image_gen/generated/
+web_projects/
 web_projects/*.zip
 web_projects/quick_images/
+memory/
 
 
 # Legacy sample area
