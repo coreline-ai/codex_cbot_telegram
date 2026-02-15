@@ -63,9 +63,3 @@ memory/
 
 # Legacy sample area
 /old_sample/
-
-# Web Simulator artifacts (Local Only)
-web_simulator/
-simulator_messenger_server.py
-docs/web_simulator_messenger_*.md
-tests/test_web_simulator_messenger.py

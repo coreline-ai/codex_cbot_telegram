@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Web Simulator Messenger</title>
+  <link rel="stylesheet" href="/web/styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <h1>Web Simulator Messenger</h1>
+        <p>Telegram 대체 테스트 채널</p>
+      </div>
+      <div class="status" id="status">idle</div>
+    </header>
+
+    <section class="controlbar">
+      <button id="retriggerBtn" type="button">재처리</button>
+      <button id="testPingBtn" type="button">테스트 메시지</button>
+      <button id="stopWorkerBtn" type="button">워커 중지</button>
+      <div id="controlStatus" class="control-status">control: ready</div>
+    </section>
+
+    <section class="workspace">
+      <section id="chat" class="chat"></section>
+      <aside class="debug">
+        <div class="debug-head">
+          <h2>Debug</h2>
+          <div class="debug-tools">
+            <div class="debug-meta" id="debugMeta">pending: 0</div>
+            <div class="debug-actions">
+              <button id="scrollDebugUpBtn" type="button" aria-label="Debug Scroll Up">↑</button>
+              <button id="scrollDebugDownBtn" type="button" aria-label="Debug Scroll Down">↓</button>
+              <button id="copyDebugBtn" type="button">Copy</button>
+              <button id="clearDebugBtn" type="button">Clear</button>
+            </div>
+          </div>
+        </div>
+        <pre id="debugLog" class="debug-log">대기 중...</pre>
+      </aside>
+    </section>
+
+    <form id="composer" class="composer">
+      <input id="msgInput" type="text" placeholder="메시지를 입력하세요" autocomplete="off" />
+      <button type="submit">전송</button>
+    </form>
+  </main>
+
+  <script src="/web/app.js"></script>
+</body>
+</html>
